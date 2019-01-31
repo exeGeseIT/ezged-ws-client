@@ -1,0 +1,27 @@
+{
+    "name": "jcglombard/ezged-ws-client",
+    "description": "Wrapper for ezGED WS ",
+    "type": "library",
+    "require": {
+        "php": ">=5.6",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "license": "mit",
+    "authors": [
+        {
+            "name": "Jean-Claude Glombard",
+            "email": "jc.glombard@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "JcgDev\\EzGEDWsClient\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^4.2"
+    }
+}
