@@ -57,7 +57,14 @@ class ServiceConfig
      * @return array
      */
     public function buildRequestQuery(array $params) {
-        $reqQuery = $this->getQuery();
+        $reqQuery = [];
+
+        if ( null !== $this->getService() ) {
+            $reqQuery['service'] = $this->service;
+        }
+
+        unset($params['service']);
+        $reqQuery = array_merge($reqQuery,$this->getQuery());
 
         foreach ($params as $key => $value) {
             if ( array_key_exists($key, $reqQuery) ) {
@@ -65,11 +72,7 @@ class ServiceConfig
             }
         }
 
-        if ( null !== $this->getService() ) {
-            $reqQuery['service'] = $this->service;
-        }
-
-        //dump(['buildRequestQuery' => $reqQuery]);
+        //dump(['conf' => $this->getQuery(), 'params' => $params, 'buildRequestQuery' => $reqQuery]);
 
         return $reqQuery;
     }
