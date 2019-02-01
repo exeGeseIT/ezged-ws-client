@@ -4,11 +4,11 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 $config = require __DIR__ . '/config.php';
 
+use GuzzleHttp\Psr7;
+use GuzzleHttp\Exception\RequestException;
 use JcgDev\EzGEDWsClient\Component\Core;
 use JcgDev\EzGEDWsClient\EzGEDWsClient;
 use Symfony\Component\VarDumper\VarDumper;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Exception\RequestException;
 
 function trace( $reqKey, EzGEDWsClient $ezWS, bool $withRaw = false, $trace = null) {
 
@@ -48,13 +48,14 @@ try {
     
     $ezWS->logout();
     trace('logout: '.Core::REQ_LOGOUT, $ezWS);
-    $ezWS->requestView(36,0,20);
-    trace('requestView: '.Core::REQ_REQUEST_VIEW, $ezWS, false, ['qyrid'=>36, 'offset'=>0, 'limit'=>20]);
+    
+    $ezWS->requestView(78,0,20);
+    trace('requestView: '.Core::REQ_REQUEST_VIEW, $ezWS, false, ['qyrid'=>78, 'offset'=>0, 'limit'=>20]);
 
-    /*
-    $ezWS->requestView(36,2,2);
-    trace('requestView: '.Core::REQ_REQUEST_VIEW, $ezWS, false, ['qyrid'=>36, 'offset'=>1, 'limit'=>2]);
-    */
+    $filter = ['field' => 'FACTURE_SCOPE_LBL', 'operator' => 'like', 'value' => 'inf'];
+    $ezWS->requestView(78,0,5,$filter);
+    trace('requestView: '.Core::REQ_REQUEST_VIEW, $ezWS, false, (['qyrid'=>78, 'offset'=>0, 'limit'=>5]+$filter));
+
 
 } catch (RequestException $e) {
     echo Psr7\str($e->getRequest());

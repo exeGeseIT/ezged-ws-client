@@ -114,7 +114,6 @@ class EzGEDWsClient
                 $this->sessionid = $r[0]->sessionid;
             }
         }
-
         return $this;
     }
 
@@ -123,7 +122,6 @@ class EzGEDWsClient
      * @return $this
      */
     public function logout () {
-        
         if ( null !== $this->sessionid ) {
             $_params = [
                 'sessionid' => $this->sessionid,
@@ -144,7 +142,6 @@ class EzGEDWsClient
      * @return $this
      */
     public function getPerimeter () {
-
         $this->_connect();
         $this->requester->exec(Core::REQ_GET_PERIMETER);
         return $this;
@@ -153,18 +150,40 @@ class EzGEDWsClient
     /**
      *  Afficher les résultats d'une vue
      *
+     * le paramètre $filter permet de filtrer la recherche
+     * Il doit être de la forme:
+     * [
+     *   'field'    => Nom du champ de la base de donnée sur lequel rechercher
+     *   'operator' => operateur: '=' | '>=' | '<=' | 'like'
+     *   'value'    => Valeur à rechercher
+     * ]
+     *
+     *
      * @param int $idview   identifiant de la vue (QRY_ID)
      * @param int $offset   offset pour la pagination du résultat
      * @param int $limit    nombre de ligne de résulta retourné
+     * @param array|null $filter  filtre de la forme ['field'=>, 'operator'=> 'value'=>]
      * @return $this
      */
-    public function requestView ( $idview, $offset = 0, $limit = 20 ) {
+    public function requestView ( $idview, $offset = 0, $limit = 20, array $filter = null ) {
 
         $_params = [
             'qryid' => $idview,
             'limitstart' => $offset,
             'limitgridlines' => $limit,
         ];
+
+        if ( !empty($filter) ) {
+            $isKeyOk = (array_key_exists('field',$filter) && array_key_exists('operator',$filter) && array_key_exists('value',$filter) );
+            $operator = array_key_exists('operator',$filter) ? strtolower($filter['operator']) : '--';
+            $isOperatorOK = in_array($operator,['=', '>=', '<=', 'like']);
+
+            if ( $isKeyOk && $isOperatorOK ) {
+                $_params['qryusrffqn'] = $filter['field'];
+                $_params['qryusrop'] = $operator;
+                $_params['qryusrval'] = $filter['value'];
+            }
+        }
 
         $this->_connect();
         $this->requester->exec(Core::REQ_REQUEST_VIEW,$_params);

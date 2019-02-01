@@ -115,6 +115,10 @@ class Core
                     'qryid' => '',
                     'limitstart' => 0,
                     'limitgridlines' => 20,
+
+                    'qryusrffqn' => null,
+                    'qryusrop' => null,
+                    'qryusrval' => null,
                 ])
                 ->setResponseFilter([]);
 
