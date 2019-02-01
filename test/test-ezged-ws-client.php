@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__) . '/../vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 $config = require __DIR__ . '/config.php';
 
@@ -38,7 +38,9 @@ function trace( $reqKey, EzGEDWsClient $ezWS, bool $withRaw = false, $trace = nu
 
 try {
 
-    $ezWS = new EzGEDWsClient($config->api,$config->user,$config->pwd);
+    $httpRequestTraceHandler = fopen( __DIR__ . '/httprequest.log','a');
+
+    $ezWS = new EzGEDWsClient($config->api,$config->user,$config->pwd, $httpRequestTraceHandler);
 
     $ezWS->connect();
     trace(Core::REQ_AUTH, $ezWS);
@@ -49,8 +51,11 @@ try {
     $ezWS->logout();
     trace(Core::REQ_LOGOUT, $ezWS);
 
-    $result = $ezWS->requestView(36);
+    $result = $ezWS->requestView(36,0,20);
     trace(Core::REQ_REQUEST_VIEW, $ezWS, false, $result);
+
+    $result = $ezWS->requestView(36,2,1);
+    trace(Core::REQ_REQUEST_VIEW, $ezWS, true, $result);
 
 } catch (RequestException $e) {
     echo Psr7\str($e->getRequest());

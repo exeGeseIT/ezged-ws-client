@@ -182,17 +182,27 @@ class Core
     }
 
 
-    public function __construct(string $ezgedUrl)
+    /**
+     *
+     * @param string $ezgedUrl
+     * @param null|ressource $httpRequestTraceHandler
+     */
+    public function __construct(string $ezgedUrl, $httpRequestTraceHandler = null)
     {
         $this->_stateReset();
 
         $this->confServices = $this->initConfServices();
 
-        $this->guzzle = new GuzzleHttpClient([
+        $options = [
             'base_uri' => rtrim($ezgedUrl,'/') . '/data/',
             'cookies' => true,
-            'debug' => true,
-        ]);
+        ];
+
+        if ( is_resource($httpRequestTraceHandler) ) {
+            $options['debug'] = $httpRequestTraceHandler;
+        }
+
+        $this->guzzle = new GuzzleHttpClient($options);
     }
 
 

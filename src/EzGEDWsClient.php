@@ -36,15 +36,16 @@ class EzGEDWsClient
      * @param string $ezgedUrl  ex:http://localhost/ezged3
      * @param string $apiUser
      * @param string $apiPwd
+     * @param null|ressource $httpRequestTraceHandler
      */
-    public function __construct(string $ezgedUrl, string $apiUser, string $apiPwd)
+    public function __construct(string $ezgedUrl, string $apiUser, string $apiPwd, $httpRequestTraceHandler = null)
     {
         $this->apiUser = $apiUser;
         $this->apiPwd = md5($apiPwd);
 
         $this->sessionid = null;
 
-        $this->requester = new Core($ezgedUrl);
+        $this->requester = new Core($ezgedUrl,$httpRequestTraceHandler);
 
     }
 
@@ -139,6 +140,10 @@ class EzGEDWsClient
 
     /**
      *  Afficher les résultats d'une vue
+     *
+     * @param int $idview   identifiant de la vue (QRY_ID)
+     * @param int $offset   offset pour la pagination du résultat
+     * @param int $limit    nombre de ligne de résulta retourné
      * @return type
      */
     public function requestView ( $idview, $offset = 0, $limit = 20 ) {
