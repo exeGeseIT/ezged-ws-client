@@ -82,6 +82,10 @@ class EzGEDWsClient
         return $this->requester->getRawJsonResponse();
     }
 
+    public function getResponse() {
+        return $this->requester->getResponse();
+    }
+    
 
     /**
      * S'assure qu'on a bien une session ouverte
@@ -93,23 +97,31 @@ class EzGEDWsClient
     }
 
     
-
+    /**
+     *
+     * @return $this
+     */
     public function connect () {
         if ( null === $this->sessionid ) {
             $_params = [
                 'login' => $this->apiUser,
                 'pwd' => $this->apiPwd,
             ];
-            $response = $this->requester->exec(Core::REQ_AUTH, $_params);
+            $this->requester->exec(Core::REQ_AUTH, $_params);
 
             if ( Core::STATUSCODE_OK === $this->getErrorCode() ) {
-                $this->sessionid = $response[0]->sessionid;
+                $r = $this->getResponse();
+                $this->sessionid = $r[0]->sessionid;
             }
         }
 
         return $this;
     }
 
+    /**
+     * 
+     * @return $this
+     */
     public function logout () {
         
         if ( null !== $this->sessionid ) {
@@ -117,7 +129,7 @@ class EzGEDWsClient
                 'sessionid' => $this->sessionid,
                 'secsesid' => $this->sessionid,
             ];
-            $response = $this->requester->exec(Core::REQ_LOGOUT, $_params);
+            $this->requester->exec(Core::REQ_LOGOUT, $_params);
 
             if ( Core::STATUSCODE_OK === $this->getErrorCode() ) {
                 $this->sessionid = null;
@@ -129,13 +141,13 @@ class EzGEDWsClient
 
     /**
      *  Lister les vues de l'utilisateur
-     * @return type
+     * @return $this
      */
     public function getPerimeter () {
 
         $this->_connect();
-        $response = $this->requester->exec(Core::REQ_GET_PERIMETER);
-        return $response;
+        $this->requester->exec(Core::REQ_GET_PERIMETER);
+        return $this;
     }
 
     /**
@@ -144,7 +156,7 @@ class EzGEDWsClient
      * @param int $idview   identifiant de la vue (QRY_ID)
      * @param int $offset   offset pour la pagination du résultat
      * @param int $limit    nombre de ligne de résulta retourné
-     * @return type
+     * @return $this
      */
     public function requestView ( $idview, $offset = 0, $limit = 20 ) {
 
@@ -155,9 +167,9 @@ class EzGEDWsClient
         ];
 
         $this->_connect();
-        $response = $this->requester->exec(Core::REQ_REQUEST_VIEW,$_params);
+        $this->requester->exec(Core::REQ_REQUEST_VIEW,$_params);
 
-        return $response;
+        return $this;
     }
 
 }

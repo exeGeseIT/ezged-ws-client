@@ -51,6 +51,7 @@ class Core
     private $statusCode;
     private $statusMsg;
     private $rawJsonResponse;
+    private $response;
     private $errorCode;
     private $errorMessage;
 
@@ -141,6 +142,7 @@ class Core
         $this->statusCode = null;
         $this->statusMsg = null;
         $this->rawJsonResponse = null;
+        $this->response = null;
         $this->errorCode = null;
         $this->errorMessage = null;
     }
@@ -215,7 +217,9 @@ class Core
 
         $this->_stateFill($_response);
 
-        return $this->parseResponse($_response, $sconf->getResponseFilter());
+        $this->response = $this->parseResponse($_response, $sconf->getResponseFilter());
+
+        return;
     }
 
     
@@ -237,6 +241,10 @@ class Core
 
     public function getRawJsonResponse() {
         return $this->rawJsonResponse;
+    }
+
+    public function getResponse() {
+        return $this->response;
     }
 
 }
