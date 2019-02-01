@@ -91,7 +91,7 @@ class Core
         $confServices[ self::REQ_LOGOUT ] = new ServiceConfig();
         $confServices[ self::REQ_LOGOUT ]
                 ->setEndpoint('service.php')
-                ->setService('secses/delete?')
+                ->setService('secses/delete')
                 ->setQuery([
                     'sessionid' => '',
                     'secsesid' => '',
