@@ -31,7 +31,6 @@ use JcgDev\EzGEDWsClient\Component\ServiceConfig;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Description of Core
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
@@ -58,12 +57,11 @@ class Core
     private $confServices;
 
 
-    private function initConfServices() {
-        $confServices = [];
+    private function _initConfServices() {
+        $this->confServices = [];
 
         // Authent: sec/authenticate
-        $confServices[ self::REQ_AUTH ] = new ServiceConfig();
-        $confServices[ self::REQ_AUTH ]
+        $this->confServices[ self::REQ_AUTH ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('sec/authenticate')
                 ->setQuery([
@@ -75,8 +73,7 @@ class Core
                 ]);
 
         // KeepAlive: secses/keepalive
-        $confServices[ self::REQ_AUTH_KEEPALIVE ] = new ServiceConfig();
-        $confServices[ self::REQ_AUTH_KEEPALIVE ]
+        $this->confServices[ self::REQ_AUTH_KEEPALIVE ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('secses/keepalive')
                 ->setResponseFilter([
@@ -88,8 +85,7 @@ class Core
                 ]);
 
         // Logout: secses/delete
-        $confServices[ self::REQ_LOGOUT ] = new ServiceConfig();
-        $confServices[ self::REQ_LOGOUT ]
+        $this->confServices[ self::REQ_LOGOUT ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('secses/delete')
                 ->setQuery([
@@ -100,15 +96,13 @@ class Core
 
 
         // Lister les vues de l'utilisateur: query/gettreearchive
-        $confServices[ self::REQ_GET_PERIMETER ] = new ServiceConfig();
-        $confServices[ self::REQ_GET_PERIMETER ]
+        $this->confServices[ self::REQ_GET_PERIMETER ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('query/gettreearchive')
                 ->setResponseFilter([]);
 
         // Afficher les résultats d'une vue: query/gettreearchive
-        $confServices[ self::REQ_REQUEST_VIEW ] = new ServiceConfig();
-        $confServices[ self::REQ_REQUEST_VIEW ]
+        $this->confServices[ self::REQ_REQUEST_VIEW ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('query/getexec')
                 ->setQuery([
@@ -121,10 +115,7 @@ class Core
                     'qryusrval' => null,
                 ])
                 ->setResponseFilter([]);
-
-
-
-        return $confServices;
+        
     }
 
     /**
@@ -196,8 +187,7 @@ class Core
     public function __construct(string $ezgedUrl, $httpRequestTraceHandler = null)
     {
         $this->_stateReset();
-
-        $this->confServices = $this->initConfServices();
+        $this->_initConfServices();
 
         $options = [
             'base_uri' => rtrim($ezgedUrl,'/') . '/data/',
