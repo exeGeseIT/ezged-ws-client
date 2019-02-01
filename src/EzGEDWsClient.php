@@ -11,7 +11,6 @@ namespace JcgDev\EzGEDWsClient;
 use JcgDev\EzGEDWsClient\Component\Core;
 
 /**
- * Description of Client
  *
  * @author jc.glombard@gmail.com
  */
@@ -88,16 +87,6 @@ class EzGEDWsClient
     
 
     /**
-     * S'assure qu'on a bien une session ouverte
-     */
-    private function _connect() {
-        if ( null === $this->sessionid ) {
-            $this->connect();
-        }
-    }
-
-    
-    /**
      *
      * @return $this
      */
@@ -142,8 +131,8 @@ class EzGEDWsClient
      * @return $this
      */
     public function getPerimeter () {
-        $this->_connect();
-        $this->requester->exec(Core::REQ_GET_PERIMETER);
+        $this->connect()
+             ->requester->exec(Core::REQ_GET_PERIMETER);
         return $this;
     }
 
@@ -185,8 +174,8 @@ class EzGEDWsClient
             }
         }
 
-        $this->_connect();
-        $this->requester->exec(Core::REQ_REQUEST_VIEW,$_params);
+        $this->connect()
+             ->requester->exec(Core::REQ_REQUEST_VIEW,$_params);
 
         return $this;
     }
