@@ -111,9 +111,9 @@ class Core
                 ->setEndpoint('service.php')
                 ->setService('query/getexec')
                 ->setQuery([
-                    'qryid ' => '',
-                    'limitstart  ' => 0,
-                    'limitgridlines ' => 20,
+                    'qryid' => '',
+                    'limitstart' => 0,
+                    'limitgridlines' => 20,
                 ])
                 ->setResponseFilter([]);
 
@@ -191,6 +191,7 @@ class Core
         $this->guzzle = new GuzzleHttpClient([
             'base_uri' => rtrim($ezgedUrl,'/') . '/data/',
             'cookies' => true,
+            'debug' => true,
         ]);
     }
 
