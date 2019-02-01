@@ -1,16 +1,14 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once dirname(__DIR__) . '/../vendor/autoload.php';
 
-$config = (object) [
-  'api' => 'https://docenligne.fr/ezged3',
-  'user' => 'wsuser',
-  'pwd' => 'C0mmuniquerDoc4GED',
-];
+$config = require __DIR__ . '/config.php';
 
 use JcgDev\EzGEDWsClient\Component\Core;
 use JcgDev\EzGEDWsClient\EzGEDWsClient;
 use Symfony\Component\VarDumper\VarDumper;
+use GuzzleHttp\Psr7;
+use GuzzleHttp\Exception\RequestException;
 
 function trace( $reqKey, EzGEDWsClient $ezWS, bool $withRaw = false, $trace = null) {
 
@@ -54,6 +52,11 @@ try {
     $result = $ezWS->requestView(36);
     trace(Core::REQ_REQUEST_VIEW, $ezWS, false, $result);
 
+} catch (RequestException $e) {
+    echo Psr7\str($e->getRequest());
+    if ($e->hasResponse()) {
+        echo Psr7\str($e->getResponse());
+    }
 } catch (Exception $ex) {
      dump( $ex->getMessage() );
 }
