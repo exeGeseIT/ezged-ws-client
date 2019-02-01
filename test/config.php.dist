@@ -1,8 +1,8 @@
 <?php
 
 return (object) [
-  'api' => 'https://docenligne.fr/ezged3',
+  'api' => 'https://localhost.fr/ezged3',
   'user' => 'wsuser',
-  'pwd' => 'C0mmuniquerDoc4GED',
+  'pwd' => 'YourPassW0$l*',
 ];
 
