@@ -30,6 +30,24 @@ class EzGEDWsClient
 
     private $sessionid;
 
+    private $traceLogHandler;
+    private $_called;
+    private $_args;
+
+    
+    /**
+     * On s'assure de bien fermer la session
+     */
+    public function __destruct()
+    {
+        $this->logout();
+
+        /*if ( null !== $this->traceLogHandler ) {
+            fclose($this->traceLogHandler);
+        }*/
+        $this->traceLogHandler = null;
+    }
+
     /**
      *
      * @param string $ezgedUrl  ex:http://localhost/ezged3
@@ -46,16 +64,33 @@ class EzGEDWsClient
 
         $this->requester = new Core($ezgedUrl,$httpRequestTraceHandler);
 
+        $this->traceLogHandler = null;
+        $this->_called = '';
+        $this->_args = [];
+
     }
+
+
+    private function _setTraceParam( string $calledMethod, array $param = []) {
+        $this->_called = $calledMethod;
+        $this->_args = $param;
+        return $this;
+    }
+
 
     /**
-     * On s'assure de bien fermer la session 
+     *
+     * @param string $traceLogFilename
+     * @param string $mode
+     * @return $this
      */
-    public function __destruct()
-    {
-        $this->logout();
+    public function setTraceLogHandler(string $traceLogFilename, string $mode = 'w') {
+        $traceLogHandler = new \SplFileObject($traceLogFilename,$mode);
+        if ( $traceLogHandler->isWritable() ) {
+            $this->traceLogHandler = $traceLogHandler;
+        }
+        return $this;
     }
-
 
     public function getSessionId() {
         return $this->sessionid;
@@ -84,7 +119,37 @@ class EzGEDWsClient
     public function getResponse() {
         return $this->requester->getResponse();
     }
-    
+
+
+    public function trace( $withRaw = false ) {
+
+        if ( null !== $this->traceLogHandler ) {
+            $reqKey = $this->_called;
+            $log = [];
+            $log[] = sprintf("---------- %s ( %s ) ----------", $reqKey, $this->getSessionId());
+            if ( !empty($this->_args) ) {
+                foreach ($this->_args as $key => $value) {
+                    $_val = ( is_null($value) || is_scalar ($value) ) ? $value : json_encode($value);
+                    $log[] =  sprintf("  ~ %s: %s",$key,$_val);
+                }
+                $log[] =  sprintf("---------- ", $reqKey);
+            }
+            $log[] =  sprintf("  STATUS >> [ %s ] - %s", $this->getRequestStatusCode(),$this->getRequestStatusMessage());
+            $log[] =  sprintf("   ERROR >> [ %s ] - %s", $this->getErrorCode(),$this->getErrorMessage());
+            if ( $withRaw ) {
+                $log[] =  sprintf(" RAW >> %s", json_encode($this->getRawJsonResponse(),JSON_PRETTY_PRINT) );
+            }
+            $log[] =  sprintf("RESPONSE >> ", $reqKey);
+            $log[] =  sprintf("%s ", json_encode($this->getResponse(),JSON_PRETTY_PRINT));
+            $log[] =  sprintf("-------------------- ^ --------------------\n", $reqKey);
+            $log[] = "\n";
+
+            $this->traceLogHandler->fwrite( implode("\n",$log) );
+        }
+
+        return $this;
+    }
+
 
     /**
      *
@@ -96,7 +161,8 @@ class EzGEDWsClient
                 'login' => $this->apiUser,
                 'pwd' => $this->apiPwd,
             ];
-            $this->requester->exec(Core::REQ_AUTH, $_params);
+            $this->_setTraceParam(__METHOD__)
+                 ->requester->exec(Core::REQ_AUTH, $_params);
 
             if ( Core::STATUSCODE_OK === $this->getErrorCode() ) {
                 $r = $this->getResponse();
@@ -116,7 +182,8 @@ class EzGEDWsClient
                 'sessionid' => $this->sessionid,
                 'secsesid' => $this->sessionid,
             ];
-            $this->requester->exec(Core::REQ_LOGOUT, $_params);
+            $this->_setTraceParam(__METHOD__)
+                 ->requester->exec(Core::REQ_LOGOUT, $_params);
 
             if ( Core::STATUSCODE_OK === $this->getErrorCode() ) {
                 $this->sessionid = null;
@@ -132,6 +199,7 @@ class EzGEDWsClient
      */
     public function getPerimeter () {
         $this->connect()
+             ->_setTraceParam(__METHOD__)
              ->requester->exec(Core::REQ_GET_PERIMETER);
         return $this;
     }
@@ -175,6 +243,7 @@ class EzGEDWsClient
         }
 
         $this->connect()
+             ->_setTraceParam(__METHOD__, ['$idview'=>$idview, '$offset'=>$offset, '$limit'=>$limit, '$filter'=>$filter])
              ->requester->exec(Core::REQ_REQUEST_VIEW,$_params);
 
         return $this;
