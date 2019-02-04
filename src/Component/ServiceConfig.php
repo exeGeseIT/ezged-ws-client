@@ -35,6 +35,7 @@ class ServiceConfig
 {
     private $service;
     private $endpoint;
+    private $method;
     private $query;
 
     /**
@@ -46,6 +47,7 @@ class ServiceConfig
     public function __construct() {
         $this->service = null;
         $this->endpoint = '';
+        $this->method = '';
         $this->query = [];
         $this->responseFilter = null;
     }
@@ -85,7 +87,12 @@ class ServiceConfig
     }
 
     public function setEndpoint($endpoint = '') {
-        $this->endpoint = $endpoint;
+        $this->endpoint = trim($endpoint);
+        return $this;
+    }
+
+    public function setMethod($methodh = '') {
+        $this->method = trim($methodh);
         return $this;
     }
 
@@ -105,6 +112,10 @@ class ServiceConfig
 
     public function getEndpoint() {
         return $this->endpoint;
+    }
+
+    public function getMethod() {
+        return ( empty($this->method) ? 'GET' : $this->method);
     }
 
     public function getQuery() {

@@ -64,6 +64,7 @@ class Core
         $this->confServices[ self::REQ_AUTH ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('sec/authenticate')
+                ->setMethod('GET')
                 ->setQuery([
                     'login' => '',
                     'pwd' => '',
@@ -76,6 +77,7 @@ class Core
         $this->confServices[ self::REQ_AUTH_KEEPALIVE ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('secses/keepalive')
+                ->setMethod('GET')
                 ->setResponseFilter([
                     'countsignbook',
                     'countcorrection',
@@ -88,6 +90,7 @@ class Core
         $this->confServices[ self::REQ_LOGOUT ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('secses/delete')
+                ->setMethod('GET')
                 ->setQuery([
                     'sessionid' => '',
                     'secsesid' => '',
@@ -99,12 +102,14 @@ class Core
         $this->confServices[ self::REQ_GET_PERIMETER ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('query/gettreearchive')
+                ->setMethod('GET')
                 ->setResponseFilter([]);
 
         // Afficher les résultats d'une vue: query/gettreearchive
         $this->confServices[ self::REQ_REQUEST_VIEW ] = (new ServiceConfig())
                 ->setEndpoint('service.php')
                 ->setService('query/getexec')
+                ->setMethod('GET')
                 ->setQuery([
                     'qryid' => '',
                     'limitstart' => 0,
@@ -204,7 +209,7 @@ class Core
 
     public function exec(string $serviceKey, array $params = []) {
         $sconf = $this->getServiceConfig($serviceKey);
-        $_response = $this->guzzle->get( $sconf->getEndpoint(), [
+        $_response = $this->guzzle->request($sconf->getMethod(), $sconf->getEndpoint(), [
             'query' => $sconf->buildRequestQuery($params),
             'decode_content' => true,
         ]);
