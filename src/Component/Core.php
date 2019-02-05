@@ -34,19 +34,8 @@ use Psr\Http\Message\ResponseInterface;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class Core
+class Core extends CoreBase
 {
-    const STATUSCODE_OK = 0;
-
-    const REQ_AUTH = 'sec/authenticate';
-    const REQ_AUTH_KEEPALIVE = 'secses/keepalive';
-    const REQ_LOGOUT = 'secses/delete';
-    const REQ_GET_PERIMETER = 'query/gettreearchive';
-    const REQ_REQUEST_VIEW = 'query/getexec';
-
-    const REQ_UPLOAD = 'upload';
-
-
     private $guzzle;
 
     private $statusCode;
@@ -56,95 +45,12 @@ class Core
     private $errorCode;
     private $errorMessage;
 
-    private $confServices;
-
-
-    private function _initConfServices() {
-        $this->confServices = [];
-
-        // Authent: sec/authenticate
-        $this->confServices[ self::REQ_AUTH ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('sec/authenticate')
-                ->setMethod('GET')
-                ->setQuery([
-                    'login' => '',
-                    'pwd' => '',
-                ])
-                ->setResponseFilter([
-                    'sessionid',
-                ]);
-
-        // KeepAlive: secses/keepalive
-        $this->confServices[ self::REQ_AUTH_KEEPALIVE ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('secses/keepalive')
-                ->setMethod('GET')
-                ->setResponseFilter([
-                    'countsignbook',
-                    'countcorrection',
-                    'counttrash',
-                    'countmessage',
-                    'countworkflow',
-                ]);
-
-        // Logout: secses/delete
-        $this->confServices[ self::REQ_LOGOUT ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('secses/delete')
-                ->setMethod('GET')
-                ->setQuery([
-                    'sessionid' => '',
-                    'secsesid' => '',
-                ])
-                ->setResponseFilter([]);
-
-
-        // Lister les vues de l'utilisateur: query/gettreearchive
-        $this->confServices[ self::REQ_GET_PERIMETER ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('query/gettreearchive')
-                ->setMethod('GET')
-                ->setResponseFilter([]);
-
-        // Afficher les résultats d'une vue: query/gettreearchive
-        $this->confServices[ self::REQ_REQUEST_VIEW ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('query/getexec')
-                ->setMethod('GET')
-                ->setQuery([
-                    'qryid' => '',
-                    'limitstart' => 0,
-                    'limitgridlines' => 20,
-
-                    'qryusrffqn' => null,
-                    'qryusrop' => null,
-                    'qryusrval' => null,
-                ])
-                ->setResponseFilter([]);
-        
-        // Upload d'un Fichier
-        $this->confServices[ self::REQ_UPLOAD ] = (new ServiceConfig())
-                ->setEndpoint('pupload.php')
-                ->setMethod('POST')
-                ->setQuery([
-                    'mode' => 'file',
-
-                    'name' => null,
-                    'waitdir' => null,
-                ])
-                ->setResponseFilter([
-                    'filePath'
-                ]);
-
-    }
-
     /**
      *
      * @param string $serviceKey
      * @return ServiceConfig
      */
-    private function getServiceConfig( string $serviceKey ) {
+    protected function getServiceConfig( string $serviceKey ) {
         return array_key_exists($serviceKey, $this->confServices) ? $this->confServices[$serviceKey] : null;
     }
 

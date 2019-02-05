@@ -245,7 +245,7 @@ class EzGEDWsClient
 
         $this->connect()
              ->_setTraceParam(__METHOD__, ['$idview'=>$idview, '$offset'=>$offset, '$limit'=>$limit, '$filter'=>$filter])
-             ->requester->exec(Core::REQ_REQUEST_VIEW,$_params);
+             ->requester->exec(Core::REQ_EXEC_REQUEST,$_params);
 
         return $this;
     }
