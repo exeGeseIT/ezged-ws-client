@@ -44,6 +44,8 @@ class Core
     const REQ_GET_PERIMETER = 'query/gettreearchive';
     const REQ_REQUEST_VIEW = 'query/getexec';
 
+    const REQ_UPLOAD = 'upload';
+
 
     private $guzzle;
 
@@ -121,6 +123,20 @@ class Core
                 ])
                 ->setResponseFilter([]);
         
+        // Upload d'un Fichier
+        $this->confServices[ self::REQ_UPLOAD ] = (new ServiceConfig())
+                ->setEndpoint('pupload.php')
+                ->setMethod('POST')
+                ->setQuery([
+                    'mode' => 'file',
+
+                    'name' => null,
+                    'waitdir' => null,
+                ])
+                ->setResponseFilter([
+                    'filePath'
+                ]);
+
     }
 
     /**
@@ -128,7 +144,7 @@ class Core
      * @param string $serviceKey
      * @return ServiceConfig
      */
-    private function getServiceConfig(string $serviceKey ) {
+    private function getServiceConfig( string $serviceKey ) {
         return array_key_exists($serviceKey, $this->confServices) ? $this->confServices[$serviceKey] : null;
     }
 
@@ -147,22 +163,55 @@ class Core
         $this->errorMessage = null;
     }
 
-    private function parseResponse ( ResponseInterface $response, array $filter) {
+    private function _normalizeRawJsonResponse( ResponseInterface $response ) {
+        $contentTypes = implode('::',$response->getHeader('Content-Type'));
+        $isJson = (false !== strpos($contentTypes,'application/json'));
+        $isText = (false !== strpos($contentTypes,'text/plain'));
 
-        if ( null === $filter ) {
-            return $response->getBody();
+        if ( !$isJson && !$isText ) {
+            $this->errorCode = 0;
+            $this->errorMessage = sprintf('Response Content-Type: %s',$contentTypes);
+            return;
+        }
+
+        $this->rawJsonResponse = json_decode( (string) $response->getBody() );
+
+        if ( null !== $this->rawJsonResponse ) {
+            $_rawJson = $this->rawJsonResponse;
+            if ( property_exists($_rawJson,'success') ) {
+                $this->rawJsonResponse->errorCode = (true == $_rawJson->success) ? 0 : -1;
+            }
+
+            if ( property_exists($_rawJson,'message') ) {
+                $this->rawJsonResponse->errorMessage = $_rawJson->message;
+            }
+
+            if ( !property_exists($_rawJson,'rows') ) {
+                $_row = [];
+                foreach ( $_rawJson as $key => $value ) {
+                    if ( !in_array($key,['success','message','errorcode','errormsg']) ) {
+                        $_row[ $key ] = $value;
+                    }
+                }
+                $this->rawJsonResponse->rows = [ (object)$_row ];
+            }
+
+            $this->errorCode = property_exists($this->rawJsonResponse,'errorcode') ? $this->rawJsonResponse->errorcode : 100;
+            $this->errorMessage = property_exists($this->rawJsonResponse,'errormsg') ? $this->rawJsonResponse->errormsg : '-!-';
         }
         
-        $this->rawJsonResponse = \GuzzleHttp\json_decode( (string) $response->getBody() );
+        return;
+    }
 
-        $this->errorCode = $this->rawJsonResponse->errorcode;
-        $this->errorMessage = $this->rawJsonResponse->errormsg;
+    private function parseResponse( ResponseInterface $response, array $filter = null) {
 
-        $rows = property_exists($this->rawJsonResponse,'rows') ? $this->rawJsonResponse->rows : [];
+        $this->_normalizeRawJsonResponse($response);
 
-        if ( !is_array($rows) ) {
-            $rows = [$rows];
+        if ( null == $this->rawJsonResponse ) {
+            return $response->getBody();
         }
+
+        $rows = is_array($this->rawJsonResponse->rows) ? $this->rawJsonResponse->rows : [ $this->rawJsonResponse->rows ];
 
         if ( empty($rows) || empty($filter) ) {
             return $rows;
@@ -189,7 +238,7 @@ class Core
      * @param string $ezgedUrl
      * @param null|ressource $httpRequestTraceHandler
      */
-    public function __construct(string $ezgedUrl, $httpRequestTraceHandler = null)
+    public function __construct( string $ezgedUrl, $httpRequestTraceHandler = null )
     {
         $this->_stateReset();
         $this->_initConfServices();
@@ -207,12 +256,17 @@ class Core
     }
 
 
-    public function exec(string $serviceKey, array $params = []) {
+    public function exec( string $serviceKey, array $params = [], array $options = [] ) {
+        $this->_stateReset();
+
         $sconf = $this->getServiceConfig($serviceKey);
-        $_response = $this->guzzle->request($sconf->getMethod(), $sconf->getEndpoint(), [
+
+        $_options = array_merge([
             'query' => $sconf->buildRequestQuery($params),
             'decode_content' => true,
-        ]);
+        ], $options);
+
+        $_response = $this->guzzle->request($sconf->getMethod(), $sconf->getEndpoint(), $_options);
 
         $this->_stateFill($_response);
 

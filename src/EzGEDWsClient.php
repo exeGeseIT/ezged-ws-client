@@ -8,6 +8,7 @@
 
 namespace JcgDev\EzGEDWsClient;
 
+use GuzzleHttp\Psr7;
 use JcgDev\EzGEDWsClient\Component\Core;
 
 /**
@@ -246,6 +247,48 @@ class EzGEDWsClient
              ->_setTraceParam(__METHOD__, ['$idview'=>$idview, '$offset'=>$offset, '$limit'=>$limit, '$filter'=>$filter])
              ->requester->exec(Core::REQ_REQUEST_VIEW,$_params);
 
+        return $this;
+    }
+
+    /**
+     * Tous les paramètres sont optionels
+     * $params = [
+     *   - 'name' => le nom qui sera indexé pour le fichier (GED)
+     *                   par défaut: basename($fullFilename)
+     *   - 'waitdir'  => Le nom du répertoire d'attente d'un COLD dans lequel le fichiers sera écrit
+     *                   Le répertoire doit se trouver dans l'arborescence ocr/wait (e.g: C:\nchp\var\spool\ezged\instance\ocr\wait)
+     * ]
+     *
+     *
+     * @param string $fullFilename  Nom complet du fichier (ie: c:/test/fact-5678.pdf)
+     * @param array $params
+     * @return $this
+     *
+     */
+    public function upload ( string $fullFilename, array $params = [] ) {
+
+        $_params = array_merge(['name'=>basename($fullFilename), 'waitdir'=>null],$params);
+
+        if ( !empty($_params['waitdir']) ) {
+            $_params['mode'] = 'cold';
+        }
+
+        $resource = Psr7\try_fopen($fullFilename, 'r');
+
+        $_options = [
+            'multipart' => [
+                [
+                    'name' => 'file',
+                    'filename' => $_params['name'],
+                    'contents' => Psr7\stream_for($resource),
+                ],
+            ]
+        ];
+
+        $this->connect()
+             ->_setTraceParam(__METHOD__, ['$fullFilename'=>$fullFilename, '$params'=>$params])
+             ->requester->exec(Core::REQ_UPLOAD,$_params,$_options)
+                ;
         return $this;
     }
 

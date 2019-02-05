@@ -21,6 +21,7 @@ try {
 
     $ezWS->connect()->trace();
 
+/**/
     $ezWS->getPerimeter()->trace();
     
     $ezWS->logout()->trace();
@@ -29,6 +30,12 @@ try {
 
     $filter = ['field' => 'FACTURE_SCOPE_LBL', 'operator' => 'like', 'value' => 'inf'];
     $ezWS->requestView(78,0,5,$filter)->trace();
+/**/
+    $testFile = __DIR__ . '/Netbean-shortcuts.pdf';
+
+    $ezWS->upload($testFile,['name'=>'test-upload-waitdir.pdf', 'waitdir'=>'ws-test'])->trace(true);
+
+    $ezWS->upload($testFile,['name'=>'test-upload.pdf'])->trace(true);
 
 
 } catch (RequestException $e) {
@@ -37,6 +44,6 @@ try {
         echo Psr7\str($e->getResponse());
     }
 } catch (Exception $ex) {
-     dump( $ex->getMessage() );
+     dump( [get_class($ex) => $ex->getMessage()], $ex );
 }
 
