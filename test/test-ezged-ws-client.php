@@ -31,11 +31,11 @@ try {
     $filter = ['field' => 'FACTURE_SCOPE_LBL', 'operator' => 'like', 'value' => 'inf'];
     $ezWS->requestView(78,0,5,$filter)->trace();
 /**/
-    $testFile = __DIR__ . '/Netbean-shortcuts.pdf';
+    $testFile = __DIR__ . '/../documentation/ezGED-api-webservices-json.pdf';
 
     $ezWS->upload($testFile,['name'=>'test-upload-waitdir.pdf', 'waitdir'=>'ws-test'])->trace(true);
 
-    $ezWS->upload($testFile,['name'=>'test-upload.pdf'])->trace(true);
+    $ezWS->upload($testFile)->trace(true);
 
 
 } catch (RequestException $e) {
