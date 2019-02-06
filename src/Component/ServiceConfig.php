@@ -70,7 +70,11 @@ class ServiceConfig
 
         foreach ($params as $key => $value) {
             if ( array_key_exists($key, $reqQuery) ) {
-                $reqQuery[ $key ] = $value;
+                if ( is_array($value) ) {
+                    $reqQuery = array_merge($reqQuery,$value);
+                } else {
+                    $reqQuery[ $key ] = $value;
+                }
             }
         }
 
