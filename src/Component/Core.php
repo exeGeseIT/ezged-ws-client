@@ -87,11 +87,11 @@ class Core extends CoreBase
         if ( null !== $this->rawJsonResponse ) {
             $_rawJson = $this->rawJsonResponse;
             if ( property_exists($_rawJson,'success') ) {
-                $this->rawJsonResponse->errorCode = (true == $_rawJson->success) ? 0 : -1;
+                $this->rawJsonResponse->errorcode = (true == $_rawJson->success) ? 0 : -1;
             }
 
             if ( property_exists($_rawJson,'message') ) {
-                $this->rawJsonResponse->errorMessage = $_rawJson->message;
+                $this->rawJsonResponse->errormsg = $_rawJson->message;
             }
 
             if ( !property_exists($_rawJson,'rows') ) {
