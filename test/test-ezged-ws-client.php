@@ -30,6 +30,9 @@ try {
 
     $filter = ['field' => 'FACTURE_SCOPE_LBL', 'operator' => 'like', 'value' => 'inf'];
     $ezWS->requestView(78,0,5,$filter)->trace();
+
+    $ezWS->getRecordFiles(1,'NOTEDEFRAIS')->trace();
+
 /**/
     $testFile = __DIR__ . '/../documentation/ezGED-api-webservices-json.pdf';
 

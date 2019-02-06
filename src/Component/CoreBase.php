@@ -71,7 +71,7 @@ abstract class CoreBase
     /**
      * Voir la liste des fichiers (image) d'un enregistrement
      */
-    const REQ_VIEW_DOCPAK = 'docpak/loadalllastrevision';
+    const REQ_GET_DOCPAK_FILES = 'docpak/loadalllastrevision';
 
 
     /**
@@ -147,8 +147,8 @@ abstract class CoreBase
             ->setMethod('GET')
             ->setQuery([
                 'qryid' => '',
-                'limitstart' => 0,
-                'limitgridlines' => 20,
+                'limitstart' => null,
+                'limitgridlines' => null,
 
                 'qryusrffqn' => null,
                 'qryusrop' => null,
@@ -157,20 +157,28 @@ abstract class CoreBase
             ->setResponseFilter([]);
 
         // Voir la liste des fichiers (image) d'un enregistrement
-        $services[ self::REQ_VIEW_DOCPAK ] = (new ServiceConfig())
+        $services[ self::REQ_GET_DOCPAK_FILES ] = (new ServiceConfig())
             ->setEndpoint('service.php')
             ->setService('docpak/loadalllastrevision')
             ->setMethod('GET')
             ->setQuery([
-                'docpakrsid ' => 0,
-                'docpaktbl  ' => '',
+                'docpakrsid' => 0,
+                'docpaktbl' => '',
                 'docpakpage' => '*',
-                'fsfileinfo ' => 1,
+                'fsfileinfo' => 1,
+
+                'limitstart' => null,
+                'limitgridlines' => null,
             ])
             ->setResponseFilter([
                 'rsid',
+                'table',
                 'fsfileid',
                 'ripefilearchive',
+
+                'mime',
+                'namefileorigin',
+                'size',
             ]);
 
         return $services;

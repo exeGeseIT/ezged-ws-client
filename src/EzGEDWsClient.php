@@ -121,6 +121,10 @@ class EzGEDWsClient
         return $this->requester->getResponse();
     }
 
+    public function isSucceed() {
+        return (Core::ERRORCODE_OK === $this->getResponse());
+    }
+
 
     public function trace( $withRaw = false ) {
 
@@ -151,7 +155,6 @@ class EzGEDWsClient
         return $this;
     }
 
-
     /**
      *
      * @return $this
@@ -165,7 +168,7 @@ class EzGEDWsClient
             $this->_setTraceParam(__METHOD__)
                  ->requester->exec(Core::REQ_AUTH, $_params);
 
-            if ( Core::STATUSCODE_OK === $this->getErrorCode() ) {
+            if ( $this->isSucceed() ) {
                 $r = $this->getResponse();
                 $this->sessionid = $r[0]->sessionid;
             }
@@ -186,13 +189,12 @@ class EzGEDWsClient
             $this->_setTraceParam(__METHOD__)
                  ->requester->exec(Core::REQ_LOGOUT, $_params);
 
-            if ( Core::STATUSCODE_OK === $this->getErrorCode() ) {
+            if ( $this->isSucceed() ) {
                 $this->sessionid = null;
             }
         }
         return $this;
     }
-
 
     /**
      *  Lister les vues de l'utilisateur
@@ -223,7 +225,7 @@ class EzGEDWsClient
      * @param array|null $filter  filtre de la forme ['field'=>, 'operator'=> 'value'=>]
      * @return $this
      */
-    public function requestView ( $idview, $offset = 0, $limit = 20, array $filter = null ) {
+    public function requestView ( int $idview, int $offset = null, int $limit = null, array $filter = null ) {
 
         $_params = [
             'qryid' => $idview,
@@ -287,8 +289,41 @@ class EzGEDWsClient
 
         $this->connect()
              ->_setTraceParam(__METHOD__, ['$fullFilename'=>$fullFilename, '$params'=>$params])
-             ->requester->exec(Core::REQ_UPLOAD,$_params,$_options)
-                ;
+             ->requester->exec(Core::REQ_UPLOAD,$_params,$_options);
+        return $this;
+    }
+
+    /**
+     *  Retourne la liste des fichiers (image) d'un enregistrement (row)
+     *
+     * le paramètre $filter permet de filtrer la recherche
+     * Il doit être de la forme:
+     * [
+     *   'field'    => Nom du champ de la base de donnée sur lequel rechercher
+     *   'operator' => operateur: '=' | '>=' | '<=' | 'like'
+     *   'value'    => Valeur à rechercher
+     * ]
+     *
+     *
+     * @param int $idrecord   identifiant (PK) de l'enregistrement (ie. 'NOTEDEFRAIS_ID')
+     * @param string $recordTable   nom de la table de l'enregistrement (ie. 'NOTEDEFRAIS')
+     * @param int $offset   offset pour la pagination du résultat
+     * @param int $limit    nombre de ligne de résulta retourné
+     * @return $this
+     */
+    public function getRecordFiles ( int $idrecord, string $recordTable, int $offset = null, int $limit = null ) {
+
+        $_params = [
+            'docpakrsid' => $idrecord,
+            'docpaktbl' => $recordTable,
+            'limitstart' => $offset,
+            'limitgridlines' => $limit,
+        ];
+
+        $this->connect()
+             ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$offset'=>$offset, '$limit'=>$limit])
+             ->requester->exec(Core::REQ_GET_DOCPAK_FILES,$_params);
+
         return $this;
     }
 
