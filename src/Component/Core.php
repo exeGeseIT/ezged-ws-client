@@ -38,6 +38,8 @@ class Core extends CoreBase
 {
     private $guzzle;
 
+    private $services;
+
     private $statusCode;
     private $statusMsg;
     private $rawJsonResponse;
@@ -51,7 +53,7 @@ class Core extends CoreBase
      * @return ServiceConfig
      */
     protected function getServiceConfig( string $serviceKey ) {
-        return array_key_exists($serviceKey, $this->confServices) ? $this->confServices[$serviceKey] : null;
+        return array_key_exists($serviceKey, $this->services) ? $this->services[$serviceKey] : null;
     }
 
 
@@ -147,7 +149,7 @@ class Core extends CoreBase
     public function __construct( string $ezgedUrl, $httpRequestTraceHandler = null )
     {
         $this->_stateReset();
-        $this->_initConfServices();
+        $this->services = self::initServices();
 
         $options = [
             'base_uri' => rtrim($ezgedUrl,'/') . '/data/',

@@ -26,6 +26,8 @@
 
 namespace JcgDev\EzGEDWsClient\Component;
 
+use JcgDev\EzGEDWsClient\Component\ServiceConfig;
+
 /**
  * Description of CoreBase
  *
@@ -34,7 +36,7 @@ namespace JcgDev\EzGEDWsClient\Component;
 abstract class CoreBase
 {
 
-    const STATUSCODE_OK = 0;
+    const ERRORCODE_OK = 0;
     
     /**
      * Ouvrir une session (Authent)
@@ -72,105 +74,106 @@ abstract class CoreBase
     const REQ_VIEW_DOCPAK = 'docpak/loadalllastrevision';
 
 
-
-    protected $confServices;
-
-
-    protected function _initConfServices() {
+    /**
+     *
+     * @return array
+     */
+    protected static function initServices() {
         
-        $this->confServices = [];
+        $services = [];
 
         // Authent: sec/authenticate
-        $this->confServices[ self::REQ_AUTH ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('sec/authenticate')
-                ->setMethod('GET')
-                ->setQuery([
-                    'login' => '',
-                    'pwd' => '',
-                ])
-                ->setResponseFilter([
-                    'sessionid',
-                ]);
+        $services[ self::REQ_AUTH ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('sec/authenticate')
+            ->setMethod('GET')
+            ->setQuery([
+                'login' => '',
+                'pwd' => '',
+            ])
+            ->setResponseFilter([
+                'sessionid',
+            ]);
 
         // KeepAlive: secses/keepalive
-        $this->confServices[ self::REQ_AUTH_KEEPALIVE ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('secses/keepalive')
-                ->setMethod('GET')
-                ->setResponseFilter([
-                    'countsignbook',
-                    'countcorrection',
-                    'counttrash',
-                    'countmessage',
-                    'countworkflow',
-                ]);
+        $services[ self::REQ_AUTH_KEEPALIVE ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('secses/keepalive')
+            ->setMethod('GET')
+            ->setResponseFilter([
+                'countsignbook',
+                'countcorrection',
+                'counttrash',
+                'countmessage',
+                'countworkflow',
+            ]);
 
         // Logout: secses/delete
-        $this->confServices[ self::REQ_LOGOUT ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('secses/delete')
-                ->setMethod('GET')
-                ->setQuery([
-                    'sessionid' => '',
-                    'secsesid' => '',
-                ])
-                ->setResponseFilter([]);
+        $services[ self::REQ_LOGOUT ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('secses/delete')
+            ->setMethod('GET')
+            ->setQuery([
+                'sessionid' => '',
+                'secsesid' => '',
+            ])
+            ->setResponseFilter([]);
 
         // Upload d'un Fichier
-        $this->confServices[ self::REQ_UPLOAD ] = (new ServiceConfig())
-                ->setEndpoint('pupload.php')
-                ->setMethod('POST')
-                ->setQuery([
-                    'mode' => 'file',
+        $services[ self::REQ_UPLOAD ] = (new ServiceConfig())
+            ->setEndpoint('pupload.php')
+            ->setMethod('POST')
+            ->setQuery([
+                'mode' => 'file',
 
-                    'name' => null,
-                    'waitdir' => null,
-                ])
-                ->setResponseFilter([
-                    'filePath'
-                ]);
+                'name' => null,
+                'waitdir' => null,
+            ])
+            ->setResponseFilter([
+                'filePath'
+            ]);
 
         // Lister les vues de l'utilisateur: query/gettreearchive
-        $this->confServices[ self::REQ_GET_PERIMETER ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('query/gettreearchive')
-                ->setMethod('GET')
-                ->setResponseFilter([]);
+        $services[ self::REQ_GET_PERIMETER ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('query/gettreearchive')
+            ->setMethod('GET')
+            ->setResponseFilter([]);
 
         // Afficher les résultats d'une vue: query/gettreearchive
-        $this->confServices[ self::REQ_EXEC_REQUEST ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('query/getexec')
-                ->setMethod('GET')
-                ->setQuery([
-                    'qryid' => '',
-                    'limitstart' => 0,
-                    'limitgridlines' => 20,
+        $services[ self::REQ_EXEC_REQUEST ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('query/getexec')
+            ->setMethod('GET')
+            ->setQuery([
+                'qryid' => '',
+                'limitstart' => 0,
+                'limitgridlines' => 20,
 
-                    'qryusrffqn' => null,
-                    'qryusrop' => null,
-                    'qryusrval' => null,
-                ])
-                ->setResponseFilter([]);
+                'qryusrffqn' => null,
+                'qryusrop' => null,
+                'qryusrval' => null,
+            ])
+            ->setResponseFilter([]);
 
         // Voir la liste des fichiers (image) d'un enregistrement
-        $this->confServices[ self::REQ_VIEW_DOCPAK ] = (new ServiceConfig())
-                ->setEndpoint('service.php')
-                ->setService('docpak/loadalllastrevision')
-                ->setMethod('GET')
-                ->setQuery([
-                    'docpakrsid ' => 0,
-                    'docpaktbl  ' => '',
-                    'docpakpage' => '*',
-                    'fsfileinfo ' => 1,
-                ])
-                ->setResponseFilter([
-                    'rsid',
-                    'fsfileid',
-                    'ripefilearchive',
-                ]);
+        $services[ self::REQ_VIEW_DOCPAK ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('docpak/loadalllastrevision')
+            ->setMethod('GET')
+            ->setQuery([
+                'docpakrsid ' => 0,
+                'docpaktbl  ' => '',
+                'docpakpage' => '*',
+                'fsfileinfo ' => 1,
+            ])
+            ->setResponseFilter([
+                'rsid',
+                'fsfileid',
+                'ripefilearchive',
+            ]);
 
+        return $services;
     }
 
     /**
