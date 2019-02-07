@@ -71,7 +71,36 @@ abstract class CoreBase
     /**
      * Voir la liste des fichiers (image) d'un enregistrement
      */
-    const REQ_GET_DOCPAK_FILES = 'docpak/loadalllastrevision';
+    const REQ_GET_RECORD_FILES = 'docpak/loadalllastrevision';
+
+    /**
+     * Créer un enregistrement
+     */
+    const REQ_CREATE_RECORD = 'doctbl/insertrow';
+
+    /**
+     * Mettre à jour un enregistrement
+     */
+    const REQ_UPDATE_RECORD = 'doctbl/updaterow';
+
+    /**
+     * Ajouter un fichier (image) à jour un enregistrement
+     */
+    const REQ_ADD_RECORD_FILE = 'docpak/addpages';
+
+    /**
+     * Connaitre le status d'un job
+     */
+    const REQ_GET_JOB_STATUS = 'jobqueue/load';
+
+
+
+    /**
+     *
+     * @param string $serviceKey
+     * @return ServiceConfig
+     */
+    abstract protected function getServiceConfig( string $serviceKey );
 
 
     /**
@@ -157,7 +186,7 @@ abstract class CoreBase
             ->setResponseFilter([]);
 
         // Voir la liste des fichiers (image) d'un enregistrement
-        $services[ self::REQ_GET_DOCPAK_FILES ] = (new ServiceConfig())
+        $services[ self::REQ_GET_RECORD_FILES ] = (new ServiceConfig())
             ->setEndpoint('service.php')
             ->setService('docpak/loadalllastrevision')
             ->setMethod('GET')
@@ -181,15 +210,75 @@ abstract class CoreBase
                 'size',
             ]);
 
+        // Créer un enregistrement
+        $services[ self::REQ_CREATE_RECORD ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('doctbl/insertrow')
+            ->setMethod('GET')
+            ->setQuery([
+                'tfqn' => '',
+                '__fields__' => [],
+
+                'qryid' => null,
+            ])
+            ->setResponseFilter([]);
+
+        // Mettre à jour un enregistrement
+        $services[ self::REQ_UPDATE_RECORD ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('doctbl/updaterow')
+            ->setMethod('GET')
+            ->setQuery([
+                'tfqn' => '',
+                'field_ID' => 0,
+                'value_ID' => 0,
+                '__fields__' => [],
+            ])
+            ->setResponseFilter([]);
+
+        /**
+         * Ajouter un fichier (image) à jour un enregistrement
+         *
+         * paramètres :
+         *  - tfqn : Le nom de la table.
+         *  - rsid : L'ID de la fiche (ici 118).
+         *  - file : Le chemin, sur le serveur, du fichier.
+         *  - start : -1
+         *  - ocr : 1 pour garder le format d'origine, 0 pour archiver seulement le fichier converti (selon le format).
+         */
+        $services[ self::REQ_ADD_RECORD_FILE ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('docpak/addpages')
+            ->setMethod('GET')
+            ->setQuery([
+                'tfqn' => '',
+                'rsid' => 0,
+                'file' => '',
+                'ocr' => 1,
+                'start' => -1,
+            ])
+            ->setResponseFilter([
+                'JOBQUEUE_ID'
+            ]);
+
+        /**
+         * Connaitre le status d'un JOB
+         *
+         * paramètres :
+         *  - jobqueueid : l' ID du job.
+         */
+        $services[ self::REQ_GET_JOB_STATUS ] = (new ServiceConfig())
+            ->setEndpoint('service.php')
+            ->setService('jobqueue/load')
+            ->setMethod('GET')
+            ->setQuery([
+                'jobqueueid' => 0,
+            ])
+            ->setResponseFilter([]);
+
+
         return $services;
     }
 
-    /**
-     *
-     * @param string $serviceKey
-     * @return ServiceConfig
-     */
-    abstract protected function getServiceConfig( string $serviceKey );
     
-
 }

@@ -42,16 +42,12 @@ class EzGEDWsClient
     public function __destruct()
     {
         $this->logout();
-
-        /*if ( null !== $this->traceLogHandler ) {
-            fclose($this->traceLogHandler);
-        }*/
         $this->traceLogHandler = null;
     }
 
     /**
      *
-     * @param string $ezgedUrl  ex:http://localhost/ezged3
+     * @param string $ezgedUrl  ex: http://localhost/ezged3
      * @param string $apiUser
      * @param string $apiPwd
      * @param null|ressource $httpRequestTraceHandler
@@ -122,7 +118,7 @@ class EzGEDWsClient
     }
 
     public function isSucceed() {
-        return (Core::ERRORCODE_OK === $this->getResponse());
+        return (Core::ERRORCODE_OK === $this->getErrorCode());
     }
 
 
@@ -253,7 +249,9 @@ class EzGEDWsClient
     }
 
     /**
-     * Tous les paramètres sont optionels
+     * Upload d'un fichier
+     *
+     * Tous les paramètres ($params) sont optionels
      * $params = [
      *   - 'name' => le nom qui sera indexé pour le fichier (GED)
      *                   par défaut: basename($fullFilename)
@@ -294,16 +292,7 @@ class EzGEDWsClient
     }
 
     /**
-     *  Retourne la liste des fichiers (image) d'un enregistrement (row)
-     *
-     * le paramètre $filter permet de filtrer la recherche
-     * Il doit être de la forme:
-     * [
-     *   'field'    => Nom du champ de la base de donnée sur lequel rechercher
-     *   'operator' => operateur: '=' | '>=' | '<=' | 'like'
-     *   'value'    => Valeur à rechercher
-     * ]
-     *
+     *  Retourne la liste des pages (fichier) d'un enregistrement (row)
      *
      * @param int $idrecord   identifiant (PK) de l'enregistrement (ie. 'NOTEDEFRAIS_ID')
      * @param string $recordTable   nom de la table de l'enregistrement (ie. 'NOTEDEFRAIS')
@@ -311,7 +300,7 @@ class EzGEDWsClient
      * @param int $limit    nombre de ligne de résulta retourné
      * @return $this
      */
-    public function getRecordFiles ( int $idrecord, string $recordTable, int $offset = null, int $limit = null ) {
+    public function getRecordPages ( int $idrecord, string $recordTable, int $offset = null, int $limit = null ) {
 
         $_params = [
             'docpakrsid' => $idrecord,
@@ -322,7 +311,115 @@ class EzGEDWsClient
 
         $this->connect()
              ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$offset'=>$offset, '$limit'=>$limit])
-             ->requester->exec(Core::REQ_GET_DOCPAK_FILES,$_params);
+             ->requester->exec(Core::REQ_GET_RECORD_FILES,$_params);
+
+        return $this;
+    }
+
+    /**
+     * Création d'un enregistrement
+     *
+     * @param string $recordTable
+     * @param array $fields
+     * @param int $idqry
+     * @return $this
+     */
+    public function createRecord( string $recordTable, array $fields, int $idqry = null ) {
+
+        $_params = [
+            'tfqn' => $recordTable,
+            'qryid' => $idqry,
+        ];
+
+        $i = 0;
+        $_fields = [];
+        foreach ($fields as $key => $value) {
+            $_fields[ sprintf('fields[%d]',$i) ] = $key;
+            $_fields[ sprintf('values[%d]',$i) ] = $value;
+            $i++;
+        }
+        $_params['__fields__'] = $_fields;
+
+        $this->connect()
+             ->_setTraceParam(__METHOD__, ['$recordTable'=>$recordTable, '$idqry'=>$idqry, '$fields'=>json_encode($fields)])
+             ->requester->exec(Core::REQ_CREATE_RECORD,$_params);
+
+        return $this;
+    }
+
+    /**
+     * Mise à jour d'un enregistrement
+     *
+     * @param int $idrecord
+     * @param string $recordTable
+     * @param string $primaryField
+     * @param array $fields
+     * @return $this
+     */
+    public function updateRecord( int $idrecord, string $recordTable, string $primaryField, array $fields ) {
+
+        $_params = [
+            'tfqn' => $recordTable,
+            'field_ID' => $primaryField,
+            'value_ID' => $idrecord,
+        ];
+
+        $i = 0;
+        $_fields = [];
+        foreach ($fields as $key => $value) {
+            $_fields[ sprintf('fields[%d]',$i) ] = $key;
+            $_fields[ sprintf('values[%d]',$i) ] = $value;
+            $i++;
+        }
+        $_params['__fields__'] = $_fields;
+
+        $this->connect()
+             ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$primaryField'=>$primaryField, '$fields'=>json_encode($fields)])
+             ->requester->exec(Core::REQ_UPDATE_RECORD,$_params);
+
+        return $this;
+    }
+
+    /**
+     * Ajouter un fichier (image) à un enregistrement
+     *
+     * @param int $idrecord
+     * @param string $recordTable
+     * @param string $serverFilePath  Le chemin, sur le serveur, du fichier.
+     * @param boolean $convertBeforeArchive FALSE pour garder le format d'origine, TRUE pour archiver seulement le fichier converti (selon le format)
+     * @return $this
+     */
+    public function addRecordPage( int $idrecord, string $recordTable, string $serverFilePath, bool $convertBeforeArchive = false ) {
+
+        $_params = [
+            'tfqn' => $recordTable,
+            'rsid' => $idrecord,
+            'file' => $serverFilePath,
+            'ocr' => ($convertBeforeArchive ? 0 : 1),
+        ];
+
+        $this->connect()
+             ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$serverFilePath'=>$serverFilePath, '$convertBeforeArchive'=>json_encode($convertBeforeArchive)])
+             ->requester->exec(Core::REQ_ADD_RECORD_FILE,$_params);
+
+        return $this;
+    }
+
+    /**
+     * Connaitre le status d'un job
+     *
+     * @param int $idjob
+     * @return $this
+     */
+    public function getJobStatus( int $idjob ) {
+
+        $_params = [
+            'jobqueueid' => $idjob,
+        ];
+
+        $this->connect()
+             ->_setTraceParam(__METHOD__, ['$idjob'=>$idjob])
+             ->requester->exec(Core::REQ_GET_JOB_STATUS,$_params);
 
         return $this;
     }
