@@ -95,6 +95,7 @@ abstract class CoreBase
 
 
 
+
     /**
      *
      * @param string $serviceKey
@@ -214,10 +215,11 @@ abstract class CoreBase
         $services[ self::REQ_CREATE_RECORD ] = (new ServiceConfig())
             ->setEndpoint('service.php')
             ->setService('doctbl/insertrow')
-            ->setMethod('GET')
+            ->setMethod('POST')
             ->setQuery([
                 'tfqn' => '',
-                '__fields__' => [],
+                'fields' => '',
+                'values' => '',
 
                 'qryid' => null,
             ])
@@ -227,12 +229,13 @@ abstract class CoreBase
         $services[ self::REQ_UPDATE_RECORD ] = (new ServiceConfig())
             ->setEndpoint('service.php')
             ->setService('doctbl/updaterow')
-            ->setMethod('GET')
+            ->setMethod('POST')
             ->setQuery([
                 'tfqn' => '',
                 'field_ID' => 0,
                 'value_ID' => 0,
-                '__fields__' => [],
+                'fields' => '',
+                'values' => '',
             ])
             ->setResponseFilter([]);
 
@@ -249,7 +252,7 @@ abstract class CoreBase
         $services[ self::REQ_ADD_RECORD_FILE ] = (new ServiceConfig())
             ->setEndpoint('service.php')
             ->setService('docpak/addpages')
-            ->setMethod('GET')
+            ->setMethod('POST')
             ->setQuery([
                 'tfqn' => '',
                 'rsid' => 0,

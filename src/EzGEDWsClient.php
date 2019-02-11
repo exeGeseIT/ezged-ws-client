@@ -329,16 +329,9 @@ class EzGEDWsClient
         $_params = [
             'tfqn' => $recordTable,
             'qryid' => $idqry,
+            'fields' => json_encode(array_keys($fields)),
+            'values' => json_encode(array_values($fields)),
         ];
-
-        $i = 0;
-        $_fields = [];
-        foreach ($fields as $key => $value) {
-            $_fields[ sprintf('fields[%d]',$i) ] = $key;
-            $_fields[ sprintf('values[%d]',$i) ] = $value;
-            $i++;
-        }
-        $_params['__fields__'] = $_fields;
 
         $this->connect()
              ->_setTraceParam(__METHOD__, ['$recordTable'=>$recordTable, '$idqry'=>$idqry, '$fields'=>json_encode($fields)])
@@ -362,16 +355,10 @@ class EzGEDWsClient
             'tfqn' => $recordTable,
             'field_ID' => $primaryField,
             'value_ID' => $idrecord,
-        ];
 
-        $i = 0;
-        $_fields = [];
-        foreach ($fields as $key => $value) {
-            $_fields[ sprintf('fields[%d]',$i) ] = $key;
-            $_fields[ sprintf('values[%d]',$i) ] = $value;
-            $i++;
-        }
-        $_params['__fields__'] = $_fields;
+            'fields' => json_encode(array_keys($fields)),
+            'values' => json_encode(array_values($fields)),
+        ];
 
         $this->connect()
              ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$primaryField'=>$primaryField, '$fields'=>json_encode($fields)])
