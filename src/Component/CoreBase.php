@@ -37,7 +37,7 @@ abstract class CoreBase
 {
 
     const ERRORCODE_OK = 0;
-    
+
     /**
      * Ouvrir une session (Authent)
      */
@@ -52,6 +52,11 @@ abstract class CoreBase
      * Fermer une session (Logout)
      */
     const REQ_LOGOUT = 'secses/delete';
+
+    /**
+     * Connaitre le status d'un job
+     */
+    const REQ_DOWNLOAD_FILE = 'showdocs';
 
     /**
      * Upload d'un Fichier
@@ -109,7 +114,7 @@ abstract class CoreBase
      * @return array
      */
     protected static function initServices() {
-        
+
         $services = [];
 
         // Authent: sec/authenticate
@@ -148,6 +153,19 @@ abstract class CoreBase
                 'secsesid' => '',
             ])
             ->setResponseFilter([]);
+
+        // Récupérer un vichier Fichier
+        $services[ self::REQ_DOWNLOAD_FILE ] = (new ServiceConfig())
+            ->setEndpoint('showdocs.php')
+            ->setMethod('GET')
+            ->setQuery([
+                'fsfileid' => 0,
+                'fsfileripe' => 'n0p',
+
+                'mode' => null,
+                'download' => null,
+                'mobile' => null, //mobile =1 force 'download'
+            ]);
 
         // Upload d'un Fichier
         $services[ self::REQ_UPLOAD ] = (new ServiceConfig())
@@ -283,5 +301,5 @@ abstract class CoreBase
         return $services;
     }
 
-    
+
 }

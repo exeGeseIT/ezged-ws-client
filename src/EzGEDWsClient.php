@@ -19,7 +19,7 @@ class EzGEDWsClient
 {
     /**
      *
-     * @var Core 
+     * @var Core
      */
     private $requester;
 
@@ -35,7 +35,7 @@ class EzGEDWsClient
     private $_called;
     private $_args;
 
-    
+
     /**
      * On s'assure de bien fermer la session
      */
@@ -173,7 +173,7 @@ class EzGEDWsClient
     }
 
     /**
-     * 
+     *
      * @return $this
      */
     public function logout () {
@@ -407,6 +407,32 @@ class EzGEDWsClient
         $this->connect()
              ->_setTraceParam(__METHOD__, ['$idjob'=>$idjob])
              ->requester->exec(Core::REQ_GET_JOB_STATUS,$_params);
+
+        return $this;
+    }
+
+
+    public function showFile ( int $idfile, string $fileHash, string $saveFilepath = null) {
+
+        $_params = [
+            'fsfileid' => $idfile,
+            'fsfileripe' => $fileHash,
+            'download' => (!empty($saveFilepath) ? 1 : 0),
+        ];
+
+
+        $_options = [];
+        if ( !empty($saveFilepath) ) {
+            $_options = [
+                'sink' => $saveFilepath
+            ];
+        }
+
+
+
+        $this->connect()
+             ->_setTraceParam(__METHOD__, ['$idfile'=>$idfile, '$fileHash'=>$fileHash, '$saveFilepath'=>$saveFilepath])
+             ->requester->exec(Core::REQ_DOWNLOAD_FILE,$_params,$_options);
 
         return $this;
     }

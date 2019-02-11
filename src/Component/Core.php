@@ -116,7 +116,7 @@ class Core extends CoreBase
         $this->_normalizeRawJsonResponse($response);
 
         if ( null == $this->rawJsonResponse ) {
-            return $response->getBody();
+            return $response;
         }
 
         $rows = is_array($this->rawJsonResponse->rows) ? $this->rawJsonResponse->rows : [ $this->rawJsonResponse->rows ];
