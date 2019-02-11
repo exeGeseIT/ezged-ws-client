@@ -52,6 +52,7 @@ class EzRow extends EzBagGeneric
      * @param object $stdClass
      */
     public function init( $stdClass ) {
+        $this->data = $stdClass;
         foreach ($stdClass as $property => $value) {
             if ( $property !== 'rows') {
                 $this->setProperty($property,$value);
