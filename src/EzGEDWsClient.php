@@ -26,10 +26,8 @@ class EzGEDWsClient
     private $apiUser;
     private $apiPwd;
 
-    private $errorCode;
-    private $errorMessage;
-
     private $sessionid;
+    private $isKeepalive;
 
     private $traceLogHandler;
     private $_called;
@@ -41,7 +39,9 @@ class EzGEDWsClient
      */
     public function __destruct()
     {
-        $this->logout();
+        if ( !$this->isKeepalive() ) {
+            $this->logout();
+        }
         $this->traceLogHandler = null;
     }
 
@@ -58,6 +58,7 @@ class EzGEDWsClient
         $this->apiPwd = md5($apiPwd);
 
         $this->sessionid = null;
+        $this->isKeepalive = false;
 
         $this->requester = new Core($ezgedUrl,$httpRequestTraceHandler);
 
@@ -121,13 +122,18 @@ class EzGEDWsClient
         return (Core::ERRORCODE_OK === $this->getErrorCode());
     }
 
+    public function isKeepAlive() {
+        return (bool)$this->isKeepalive;
+    }
+
 
     public function trace( $withRaw = false ) {
 
         if ( null !== $this->traceLogHandler ) {
             $reqKey = $this->_called;
+            $alive = $this->isKeepAlive() ? '|keepalive| ' : '';
             $log = [];
-            $log[] = sprintf("---------- %s ( %s ) ----------", $reqKey, $this->getSessionId());
+            $log[] = sprintf("---------- %s ( %s %s) ----------", $reqKey,$this->getSessionId(),$alive);
             if ( !empty($this->_args) ) {
                 foreach ($this->_args as $key => $value) {
                     $_val = ( is_null($value) || is_scalar ($value) ) ? $value : json_encode($value);
@@ -153,9 +159,10 @@ class EzGEDWsClient
 
     /**
      *
+     * @param bool|null $keepalive indique si la connexion doit être maintenue
      * @return $this
      */
-    public function connect () {
+    public function connect ( bool $keepalive = null ) {
         if ( null === $this->sessionid ) {
             $_params = [
                 'login' => $this->apiUser,
@@ -167,6 +174,13 @@ class EzGEDWsClient
             if ( $this->isSucceed() ) {
                 $r = $this->getResponse();
                 $this->sessionid = $r[0]->sessionid;
+            }
+        }
+
+        if ( $keepalive && $this->getSessionId() && !$this->isKeepalive() ) {
+            $this->requester->exec(Core::REQ_AUTH_KEEPALIVE);
+            if ( $this->isSucceed() ) {
+                $this->isKeepalive = true;
             }
         }
         return $this;
@@ -187,6 +201,7 @@ class EzGEDWsClient
 
             if ( $this->isSucceed() ) {
                 $this->sessionid = null;
+                $this->isKeepalive = false;
             }
         }
         return $this;

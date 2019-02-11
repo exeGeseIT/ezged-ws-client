@@ -171,7 +171,7 @@ abstract class CoreBase
         $services[ self::REQ_AUTH_KEEPALIVE ] = (new ServiceConfig())
             ->setEndpoint('service.php')
             ->setService('secses/keepalive')
-            ->setMethod('GET')
+            ->setMethod('POST')
             ->setResponseFilter([
                 'countsignbook',
                 'countcorrection',
