@@ -10,6 +10,8 @@ namespace JcgDev\EzGEDWsClient;
 
 use GuzzleHttp\Psr7;
 use JcgDev\EzGEDWsClient\Component\Core;
+use JcgDev\EzGEDWsClient\Component\Helper\EzJobqueue;
+use SplFileObject;
 
 /**
  *
@@ -83,7 +85,7 @@ class EzGEDWsClient
      * @return $this
      */
     public function setTraceLogHandler(string $traceLogFilename, string $mode = 'w') {
-        $traceLogHandler = new \SplFileObject($traceLogFilename,$mode);
+        $traceLogHandler = new SplFileObject($traceLogFilename,$mode);
         if ( $traceLogHandler->isWritable() ) {
             $this->traceLogHandler = $traceLogHandler;
         }
@@ -411,17 +413,40 @@ class EzGEDWsClient
      * Connaitre le status d'un job
      *
      * @param int $idjob
+     * @param bool|null $instantState FALSE ==> On pool jusqu'à avoir le status 'Final'
      * @return $this
      */
-    public function getJobStatus( int $idjob ) {
+    public function getJobStatus( int $idjob, bool $instantState = null ) {
 
         $_params = [
             'jobqueueid' => $idjob,
         ];
 
-        $this->connect()
-             ->_setTraceParam(__METHOD__, ['$idjob'=>$idjob])
+        $_keepAlive = $this->isKeepalive();
+
+        $keepalive = (bool)$instantState ? null : true;
+
+        $this->connect($keepalive)
+             ->_setTraceParam(__METHOD__, ['$idjob'=>$idjob, '$instantState'=>json_encode((bool)$instantState)])
              ->requester->exec(Core::REQ_GET_JOB_STATUS,$_params);
+
+        if ( !$instantState ) {
+
+            $pooling_waitTime = 2;
+            $countDown = (60 / $pooling_waitTime);
+            $ezJob = new EzJobqueue();
+            $isOK = $this->isSucceed();
+            while ( $isOK && !$ezJob->init($this->getResponse()[0])->onFinalState() ) {
+                dump( sprintf('[%s]:>> waiting %ds for pooling.',$ezJob->getStatus(),$pooling_waitTime) );
+                $countDown--;
+                sleep($pooling_waitTime);
+                $this->requester->exec(Core::REQ_GET_JOB_STATUS,$_params);
+
+                $isOK = $this->isSucceed() && $countDown;
+            }
+        }
+
+        $this->isKeepalive = $_keepAlive;
 
         return $this;
     }
