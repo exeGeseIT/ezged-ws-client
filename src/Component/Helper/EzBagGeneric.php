@@ -37,6 +37,18 @@ class EzBagGeneric extends EzBagAbstract
     protected $table = null;
 
 
+    /**
+     *
+     * @param string|null $pkField
+     * @param string|null $table
+     */
+    public function __construct(string $pkField = null, string $table = null) {
+        $this->pkField = $pkField;
+        $this->table = $table;
+        parent::__construct();
+    }
+
+
     public function getPKField() {
         return $this->pkField;
     }
