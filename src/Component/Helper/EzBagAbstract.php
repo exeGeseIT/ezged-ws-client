@@ -60,7 +60,7 @@ abstract class EzBagAbstract
 
     public function __construct() {
         $this->_properties = [];
-        $this->_callabless = [];
+        $this->_callables = [];
         $this->elements = [];
     }
 
@@ -94,7 +94,12 @@ abstract class EzBagAbstract
         }
     }
 
-
+    /**
+     *
+     * @param object $data
+     * @param array $requiredProperties
+     * @return bool
+     */
     protected function validateData ( $data, array $requiredProperties = [] ) {
         $isOK = true;
         foreach ($requiredProperties as $prop) {
