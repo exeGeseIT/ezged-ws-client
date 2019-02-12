@@ -138,6 +138,10 @@ class EzGEDWsClient
         return $this->requester->getResponse();
     }
 
+    public function getEzResponse() {
+        return $this->requester->transform();
+    }
+
     public function isSucceed() {
         return (Core::ERRORCODE_OK === $this->getErrorCode());
     }
@@ -455,7 +459,7 @@ class EzGEDWsClient
             $ezJob = new EzJobstatus();
             $isOK = $this->isSucceed();
             while ( $isOK && !$ezJob->init($this->getResponse()[0])->onFinalState() ) {
-                dump( sprintf('[%s]:>> waiting %ds for pooling.',$ezJob->getStatus(),$pooling_waitTime) );
+                //dump( sprintf('[%s]:>> waiting %ds for pooling.',$ezJob->getStatus(),$pooling_waitTime) );
                 $countDown--;
                 sleep($pooling_waitTime);
                 $this->requester->exec(Core::REQ_GET_JOB_STATUS,$_params);

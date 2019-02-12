@@ -44,12 +44,19 @@ class ServiceConfig
      */
     private $responseFilter;
 
+    /**
+     *
+     * @var callable|null
+     */
+    private $responseFormater;
+
     public function __construct() {
         $this->service = null;
         $this->endpoint = '';
         $this->method = '';
         $this->query = [];
         $this->responseFilter = null;
+        $this->responseFormater = null;
     }
 
 
@@ -110,6 +117,11 @@ class ServiceConfig
         return $this;
     }
 
+    public function setResponseFormater(callable $fn) {
+        $this->responseFormater = $fn;
+        return $this;
+    }
+
     public function getService() {
         return $this->service;
     }
@@ -128,6 +140,10 @@ class ServiceConfig
 
     public function getResponseFilter() {
         return $this->responseFilter;
+    }
+
+    public function getResponseFormater() {
+        return $this->responseFormater;
     }
 
 }

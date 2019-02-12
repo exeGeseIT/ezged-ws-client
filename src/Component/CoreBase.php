@@ -26,6 +26,11 @@
 
 namespace JcgDev\EzGEDWsClient\Component;
 
+use JcgDev\EzGEDWsClient\Component\Helper\EzBagGeneric;
+use JcgDev\EzGEDWsClient\Component\Helper\EzFamily;
+use JcgDev\EzGEDWsClient\Component\Helper\EzJob;
+use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
+use JcgDev\EzGEDWsClient\Component\Helper\EzRow;
 use JcgDev\EzGEDWsClient\Component\ServiceConfig;
 
 /**
@@ -111,6 +116,12 @@ abstract class CoreBase
     const REQ_EXEC_REQUEST = 'query/getexec';
 
     /**
+     * Obtenir toutes les lignes retournées par une requête.
+     * @todo implémentation
+     */
+    const REQ_EXEC_GLOBAL_SEARCH = 'query/globalsearch_v3';
+
+    /**
      * Voir la liste des fichiers (image) d'un enregistrement
      */
     const REQ_GET_RECORD_FILES = 'docpak/loadalllastrevision';
@@ -151,6 +162,61 @@ abstract class CoreBase
      * @return array
      */
     protected static function initServices() {
+
+        $fns = [
+
+            self::REQ_UPLOAD => function(array $reponse){
+                $ezBag = (new EzBagGeneric())->init( $reponse[0] );
+                return $ezBag;
+            },
+
+            self::REQ_GET_PERIMETER => function(array $reponse){
+                $r = $reponse[0]->rows;
+                $out = [];
+                foreach ($r as $stdClass) {
+                    $ezFamily = (new EzFamily())->init( $stdClass );
+                    $out[ $ezFamily->getId() ] = $ezFamily;
+                }
+                return $out;
+            },
+
+            self::REQ_EXEC_REQUEST => function(array $reponse){
+                $out = [];
+                foreach ($reponse as $stdClass) {
+                    $ezQuery = (new EzRow())->init( $stdClass );
+                    $out[ $ezQuery->getId() ] = $ezQuery;
+                }
+                return $out;
+            },
+
+            self::REQ_GET_RECORD_FILES => function(array $reponse){
+                $out = [];
+                foreach ($reponse as $stdClass) {
+                    $ezBag = (new EzBagGeneric())->init( $stdClass );
+                    $out[ $ezBag->getRank() ] = $ezBag;
+                }
+                return $out;
+            },
+
+            self::REQ_CREATE_RECORD => function(array $reponse){
+                $ezBag = (new EzBagGeneric('RETID'))->init( $reponse[0] );
+                return $ezBag;
+            },
+
+            self::REQ_ADD_RECORD_FILE => function(array $reponse){
+                $ezJob = (new EzJob())->init( $reponse[0] );
+                return $ezJob;
+            },
+
+            self::REQ_GET_JOB_STATUS => function(array $reponse){
+                $ezJobstatus = (new EzJobstatus())->init( $reponse[0] );
+                return $ezJobstatus;
+            },
+            
+        ];
+
+
+
 
         $services = [];
 
@@ -216,14 +282,16 @@ abstract class CoreBase
             ])
             ->setResponseFilter([
                 'filePath'
-            ]);
+            ])
+            ->setResponseFormater($fns[self::REQ_UPLOAD]);
 
         // Lister les vues de l'utilisateur: query/gettreearchive
         $services[ self::REQ_GET_PERIMETER ] = (new ServiceConfig())
             ->setEndpoint('service.php')
             ->setService('query/gettreearchive')
             ->setMethod('GET')
-            ->setResponseFilter([]);
+            ->setResponseFilter([])
+            ->setResponseFormater( $fns[self::REQ_GET_PERIMETER] );
 
         // Afficher les résultats d'une vue: query/gettreearchive
         $services[ self::REQ_EXEC_REQUEST ] = (new ServiceConfig())
@@ -239,7 +307,8 @@ abstract class CoreBase
                 'qryusrop' => null,
                 'qryusrval' => null,
             ])
-            ->setResponseFilter([]);
+            ->setResponseFilter([])
+            ->setResponseFormater( $fns[self::REQ_EXEC_REQUEST] );
 
         // Voir la liste des fichiers (image) d'un enregistrement
         $services[ self::REQ_GET_RECORD_FILES ] = (new ServiceConfig())
@@ -256,15 +325,18 @@ abstract class CoreBase
                 'limitgridlines' => null,
             ])
             ->setResponseFilter([
+                'rank',
                 'rsid',
                 'table',
                 'fsfileid',
                 'ripefilearchive',
+                'datefilearchive',
 
                 'mime',
                 'namefileorigin',
                 'size',
-            ]);
+            ])
+            ->setResponseFormater( $fns[self::REQ_GET_RECORD_FILES] );
 
         // Créer un enregistrement
         $services[ self::REQ_CREATE_RECORD ] = (new ServiceConfig())
@@ -278,7 +350,8 @@ abstract class CoreBase
 
                 'qryid' => null,
             ])
-            ->setResponseFilter([]);
+            ->setResponseFilter([])
+            ->setResponseFormater( $fns[self::REQ_CREATE_RECORD] );
 
         // Mettre à jour un enregistrement
         $services[ self::REQ_UPDATE_RECORD ] = (new ServiceConfig())
@@ -317,7 +390,8 @@ abstract class CoreBase
             ])
             ->setResponseFilter([
                 'JOBQUEUE_ID'
-            ]);
+            ])
+            ->setResponseFormater( $fns[self::REQ_ADD_RECORD_FILE] );
 
         /**
          * Connaitre le status d'un JOB
@@ -332,7 +406,8 @@ abstract class CoreBase
             ->setQuery([
                 'jobqueueid' => 0,
             ])
-            ->setResponseFilter([]);
+            ->setResponseFilter([])
+            ->setResponseFormater( $fns[self::REQ_GET_JOB_STATUS] );
 
 
         return $services;

@@ -47,6 +47,8 @@ class Core extends CoreBase
     private $errorCode;
     private $errorMessage;
 
+    private $formater;
+
     /**
      *
      * @param string $serviceKey
@@ -67,6 +69,7 @@ class Core extends CoreBase
         $this->statusMsg = null;
         $this->rawJsonResponse = null;
         $this->response = null;
+        $this->formater = null;
         $this->errorCode = null;
         $this->errorMessage = null;
     }
@@ -169,6 +172,8 @@ class Core extends CoreBase
 
         $sconf = $this->getServiceConfig($serviceKey);
 
+        $this->formater = $sconf->getResponseFormater();
+
         $_options = array_merge([
             'query' => $sconf->buildRequestQuery($params),
             'decode_content' => true,
@@ -206,6 +211,13 @@ class Core extends CoreBase
 
     public function getResponse() {
         return $this->response;
+    }
+
+    public function transform() {
+        if ( (null === $this->formater) || empty($this->response) ) {
+            return $this->response;
+        }
+        return call_user_func($this->formater,$this->getResponse());
     }
 
 }
