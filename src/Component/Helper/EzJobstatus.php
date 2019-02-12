@@ -33,7 +33,7 @@ use JcgDev\EzGEDWsClient\Component\CoreBase;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzJobstatus extends EzBagGeneric
+class EzJobstatus extends EzJob
 {
     /**
      * Le job est prêt et en attente d'être traité par le serveur de travaux
@@ -94,9 +94,8 @@ class EzJobstatus extends EzBagGeneric
      */
     public function __construct() {
         parent::__construct();
-        $this->pkField = 'JOBQUEUE_ID';
-        $properties = ['JOBQUEUE_STATUS', 'JOBQUEUE_ACTIVE', 'JOBQUEUE_STEP'];
-        $this->setProperties($properties);
+        $this->setProperties( ['JOBQUEUE_ACTIVE', 'JOBQUEUE_STEP'] )
+             ->setProperty('JOBQUEUE_STATUS', CoreBase::JOBSTATUS_PENDING);
     }
 
     /**
