@@ -33,7 +33,7 @@ use JcgDev\EzGEDWsClient\Component\CoreBase;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzJobqueue extends EzBagGeneric
+class EzJobstatus extends EzBagGeneric
 {
     /**
      * Le job est prêt et en attente d'être traité par le serveur de travaux
