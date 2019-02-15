@@ -27,11 +27,10 @@
 namespace JcgDev\EzGEDWsClient\Component\Helper;
 
 /**
- * Description of EzBagGeneric
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzBagGeneric extends EzBagAbstract
+class EzGenericBag extends EzBagAbstract
 {
     protected $pkField = null;
     protected $table = null;
@@ -77,7 +76,7 @@ class EzBagGeneric extends EzBagAbstract
             foreach ($stdClass as $property => $value) {
                 if ( $property === 'rows') {
                     foreach ($value as $element) {
-                        $this->elements[] = (new EzBagGeneric())->init($element);
+                        $this->elements[] = (new EzGenericBag())->init($element);
                     }
                 } else {
                     $this->setProperty($property,$value);

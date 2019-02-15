@@ -31,7 +31,7 @@ namespace JcgDev\EzGEDWsClient\Component\Helper;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzQuery extends EzBagGeneric
+class EzQuery extends EzGenericBag
 {
 
     public function __construct() {

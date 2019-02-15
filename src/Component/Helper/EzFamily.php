@@ -34,7 +34,7 @@ use JcgDev\EzGEDWsClient\Component\Helper\EzQuery;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzFamily extends EzBagGeneric
+class EzFamily extends EzGenericBag
 {
 
     public function __construct() {

@@ -31,7 +31,7 @@ namespace JcgDev\EzGEDWsClient\Component\Helper;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzRow extends EzBagGeneric
+class EzRow extends EzGenericBag
 {
 
     /**

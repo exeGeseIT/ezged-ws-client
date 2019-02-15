@@ -26,7 +26,7 @@
 
 namespace JcgDev\EzGEDWsClient\Component;
 
-use JcgDev\EzGEDWsClient\Component\Helper\EzBagGeneric;
+use JcgDev\EzGEDWsClient\Component\Helper\EzGenericBag;
 use JcgDev\EzGEDWsClient\Component\Helper\EzFamily;
 use JcgDev\EzGEDWsClient\Component\Helper\EzJob;
 use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
@@ -166,7 +166,7 @@ abstract class CoreBase
         $fns = [
 
             self::REQ_UPLOAD => function(array $reponse){
-                $ezBag = (new EzBagGeneric())->init( $reponse[0] );
+                $ezBag = (new EzGenericBag())->init( $reponse[0] );
                 return $ezBag;
             },
 
@@ -192,14 +192,14 @@ abstract class CoreBase
             self::REQ_GET_RECORD_FILES => function(array $reponse){
                 $out = [];
                 foreach ($reponse as $stdClass) {
-                    $ezBag = (new EzBagGeneric())->init( $stdClass );
+                    $ezBag = (new EzGenericBag())->init( $stdClass );
                     $out[ $ezBag->getRank() ] = $ezBag;
                 }
                 return $out;
             },
 
             self::REQ_CREATE_RECORD => function(array $reponse){
-                $ezBag = (new EzBagGeneric('RETID'))->init( $reponse[0] );
+                $ezBag = (new EzGenericBag('RETID'))->init( $reponse[0] );
                 return $ezBag;
             },
 

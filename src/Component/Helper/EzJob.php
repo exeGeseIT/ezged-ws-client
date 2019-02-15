@@ -33,7 +33,7 @@ use JcgDev\EzGEDWsClient\Component\CoreBase;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzJob extends EzBagGeneric
+class EzJob extends EzGenericBag
 {
 
     /**
