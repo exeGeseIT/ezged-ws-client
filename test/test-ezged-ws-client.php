@@ -50,7 +50,7 @@ try {
     }
 
     $ezWS->getRecordPages(1,'NOTEDEFRAIS')->trace(true);
-
+    
     /**
      * Création
      */
