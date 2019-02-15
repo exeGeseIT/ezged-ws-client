@@ -19,4 +19,5 @@ require 'vendor/autoload.php';
 
 
 ### TODO:
+- [ ] Logger Injection
 - [ ] Documentation

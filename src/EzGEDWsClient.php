@@ -29,6 +29,7 @@ namespace JcgDev\EzGEDWsClient;
 use GuzzleHttp\Psr7;
 use JcgDev\EzGEDWsClient\Component\Core;
 use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
+use JcgDev\EzGEDWsClient\Exception\AuthenticationException;
 use SplFileObject;
 
 /**
@@ -160,7 +161,7 @@ class EzGEDWsClient
             $log[] = sprintf("---------- %s ( %s %s) ----------", $reqKey,$this->getSessionId(),$alive);
             if ( !empty($this->_args) ) {
                 foreach ($this->_args as $key => $value) {
-                    $_val = ( is_null($value) || is_scalar ($value) ) ? $value : json_encode($value);
+                    $_val = ( is_null($value) || is_scalar ($value) ) ? $value : \json_encode($value);
                     $log[] =  sprintf("  ~ %s: %s",$key,$_val);
                 }
                 $log[] =  sprintf("---------- ", $reqKey);
@@ -168,10 +169,10 @@ class EzGEDWsClient
             $log[] =  sprintf("  STATUS >> [ %s ] - %s", $this->getRequestStatusCode(),$this->getRequestStatusMessage());
             $log[] =  sprintf("   ERROR >> [ %s ] - %s", $this->getErrorCode(),$this->getErrorMessage());
             if ( $withRaw ) {
-                $log[] =  sprintf(" RAW >> %s", json_encode($this->getRawJsonResponse(),JSON_PRETTY_PRINT) );
+                $log[] =  sprintf(" RAW >> %s", \json_encode($this->getRawJsonResponse(),JSON_PRETTY_PRINT) );
             }
             $log[] =  sprintf("RESPONSE >> ", $reqKey);
-            $log[] =  sprintf("%s ", json_encode($this->getResponse(),JSON_PRETTY_PRINT));
+            $log[] =  sprintf("%s ", \json_encode($this->getResponse(),JSON_PRETTY_PRINT));
             $log[] =  sprintf("-------------------- ^ --------------------\n", $reqKey);
             $log[] = "\n";
 
@@ -198,6 +199,8 @@ class EzGEDWsClient
             if ( $this->isSucceed() ) {
                 $r = $this->getResponse();
                 $this->sessionid = $r[0]->sessionid;
+            } else {
+                throw new AuthenticationException($this->getErrorMessage(), $this->getErrorCode());
             }
         }
 
@@ -368,12 +371,12 @@ class EzGEDWsClient
         $_params = [
             'tfqn' => $recordTable,
             'qryid' => $idqry,
-            'fields' => json_encode(array_keys($fields)),
-            'values' => json_encode(array_values($fields)),
+            'fields' => \json_encode(array_keys($fields)),
+            'values' => \json_encode(array_values($fields)),
         ];
 
         $this->connect()
-             ->_setTraceParam(__METHOD__, ['$recordTable'=>$recordTable, '$idqry'=>$idqry, '$fields'=>json_encode($fields)])
+             ->_setTraceParam(__METHOD__, ['$recordTable'=>$recordTable, '$idqry'=>$idqry, '$fields'=>\json_encode($fields)])
              ->requester->exec(Core::REQ_CREATE_RECORD,$_params);
 
         return $this;
@@ -395,12 +398,12 @@ class EzGEDWsClient
             'field_ID' => $primaryField,
             'value_ID' => $idrecord,
 
-            'fields' => json_encode(array_keys($fields)),
-            'values' => json_encode(array_values($fields)),
+            'fields' => \json_encode(array_keys($fields)),
+            'values' => \json_encode(array_values($fields)),
         ];
 
         $this->connect()
-             ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$primaryField'=>$primaryField, '$fields'=>json_encode($fields)])
+             ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$primaryField'=>$primaryField, '$fields'=>\json_encode($fields)])
              ->requester->exec(Core::REQ_UPDATE_RECORD,$_params);
 
         return $this;
@@ -425,7 +428,7 @@ class EzGEDWsClient
         ];
 
         $this->connect()
-             ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$serverFilePath'=>$serverFilePath, '$convertBeforeArchive'=>json_encode($convertBeforeArchive)])
+             ->_setTraceParam(__METHOD__, ['$idrecord'=>$idrecord, '$recordTable'=>$recordTable, '$serverFilePath'=>$serverFilePath, '$convertBeforeArchive'=>\json_encode($convertBeforeArchive)])
              ->requester->exec(Core::REQ_ADD_RECORD_FILE,$_params);
 
         return $this;
@@ -449,7 +452,7 @@ class EzGEDWsClient
         $keepalive = (bool)$instantState ? null : true;
 
         $this->connect($keepalive)
-             ->_setTraceParam(__METHOD__, ['$idjob'=>$idjob, '$instantState'=>json_encode((bool)$instantState)])
+             ->_setTraceParam(__METHOD__, ['$idjob'=>$idjob, '$instantState'=>\json_encode((bool)$instantState)])
              ->requester->exec(Core::REQ_GET_JOB_STATUS,$_params);
 
         if ( !$instantState ) {

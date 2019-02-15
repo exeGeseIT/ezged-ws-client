@@ -6,6 +6,7 @@ $config = require __DIR__ . '/config.php';
 
 use GuzzleHttp\Psr7;
 use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
+use JcgDev\EzGEDWsClient\Exception\AuthenticationException;
 use JcgDev\EzGEDWsClient\Exception\RequestException;
 use JcgDev\EzGEDWsClient\EzGEDWsClient;
 
@@ -34,7 +35,7 @@ try {
     //dump( $ezWS->getEzResponse() );
     //$ezFamily = (new EzFamily())->init( $ezWS->getResponse()[0]->rows[0] );
     //dump($ezFamily->getElements()[0]);
-    
+
 
     $idquery = 78;
     
@@ -112,12 +113,14 @@ try {
     }
 
 
+} catch (AuthenticationException $ex) {
+     dump( $ex->getMessage() );
 } catch (RequestException $e) {
     echo Psr7\str($e->getRequest());
     if ($e->hasResponse()) {
         echo Psr7\str($e->getResponse());
     }
 } catch (Exception $ex) {
-     dump( [get_class($ex) => $ex->getMessage()], $ex );
+     dump( [get_class($ex) => $ex->getMessage(), 'code' => $ex->getCode()], $ex );
 }
 
