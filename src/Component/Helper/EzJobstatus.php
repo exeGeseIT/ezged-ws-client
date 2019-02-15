@@ -26,14 +26,14 @@
 
 namespace JcgDev\EzGEDWsClient\Component\Helper;
 
-use JcgDev\EzGEDWsClient\Component\CoreBase;
+use JcgDev\EzGEDWsClient\Component\Services;
 
 /**
  * Description of EzRow
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzJobstatus extends EzJob
+class EzJobstatus extends EzJob implements JobstatusInterface
 {
     /**
      * Le job est prêt et en attente d'être traité par le serveur de travaux
@@ -95,7 +95,7 @@ class EzJobstatus extends EzJob
     public function __construct() {
         parent::__construct();
         $this->setProperties( ['JOBQUEUE_ACTIVE', 'JOBQUEUE_STEP'] )
-             ->setProperty('JOBQUEUE_STATUS', CoreBase::JOBSTATUS_PENDING);
+             ->setProperty('JOBQUEUE_STATUS', self::JOBSTATUS_PENDING);
     }
 
     /**
@@ -105,22 +105,22 @@ class EzJobstatus extends EzJob
     public function getStatus() {
         $status = null;
         switch ( $this->JOBQUEUE_STATUS ) {
-            case CoreBase::JOBSTATUS_PENDING:
+            case self::JOBSTATUS_PENDING:
                 $status = self::STATUS_PENDING;
                 break;
-            case CoreBase::JOBSTATUS_QUEUED:
+            case self::JOBSTATUS_QUEUED:
                 $status = self::STATUS_QUEUED;
                 break;
-            case CoreBase::JOBSTATUS_ENDED_PURGEABLE:
+            case self::JOBSTATUS_ENDED_PURGEABLE:
                 $status = self::STATUS_ENDED_PURGEABLE;
                 break;
-            case CoreBase::JOBSTATUS_ENDED_NOT_PURGEABLE:
+            case self::JOBSTATUS_ENDED_NOT_PURGEABLE:
                 $status = self::STATUS_ENDED_NOT_PURGEABLE;
                 break;
-            case CoreBase::JOBSTATUS_ERROR:
+            case self::JOBSTATUS_ERROR:
                 $status = self::STATUS_ERROR;
                 break;
-            case CoreBase::JOBSTATUS_CRITICAL:
+            case self::JOBSTATUS_CRITICAL:
                 $status = self::STATUS_CRITICAL;
                 break;
         }
