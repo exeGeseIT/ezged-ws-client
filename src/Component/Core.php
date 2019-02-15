@@ -27,14 +27,16 @@
 namespace JcgDev\EzGEDWsClient\Component;
 
 use GuzzleHttp\Client as GuzzleHttpClient;
+use GuzzleHttp\Exception\RequestException as GuzzleHttpRequestException;
 use JcgDev\EzGEDWsClient\Component\ServiceConfig;
+use JcgDev\EzGEDWsClient\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class Core extends CoreBase
+class Core extends Services
 {
     private $guzzle;
 
@@ -85,7 +87,7 @@ class Core extends CoreBase
             return;
         }
 
-        $this->rawJsonResponse = json_decode( (string) $response->getBody() );
+        $this->rawJsonResponse = \json_decode( (string) $response->getBody() );
 
         if ( null !== $this->rawJsonResponse ) {
             $_rawJson = $this->rawJsonResponse;
@@ -168,6 +170,7 @@ class Core extends CoreBase
 
 
     public function exec( string $serviceKey, array $params = [], array $options = [] ) {
+
         $this->_stateReset();
 
         $sconf = $this->getServiceConfig($serviceKey);
@@ -179,7 +182,13 @@ class Core extends CoreBase
             'decode_content' => true,
         ], $options);
 
-        $_response = $this->guzzle->request($sconf->getMethod(), $sconf->getEndpoint(), $_options);
+        try {
+            
+            $_response = $this->guzzle->request($sconf->getMethod(), $sconf->getEndpoint(), $_options);
+
+        } catch (GuzzleHttpRequestException $e) {
+            throw new RequestException($e->getMessage(), $e->getCode(), $e);
+        }
 
         $this->_stateFill($_response);
 
