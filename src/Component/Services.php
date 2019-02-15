@@ -34,11 +34,11 @@ use JcgDev\EzGEDWsClient\Component\Helper\EzRow;
 use JcgDev\EzGEDWsClient\Component\ServiceConfig;
 
 /**
- * Description of CoreBase
+ * Description of Services
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-abstract class CoreBase
+abstract class Services
 {
 
     const ERRORCODE_OK = 0;
