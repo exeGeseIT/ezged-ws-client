@@ -26,8 +26,6 @@
 
 namespace JcgDev\EzGEDWsClient\Component\Helper;
 
-use JcgDev\EzGEDWsClient\Component\CoreBase;
-
 /**
  * Description of EzRow
  *
