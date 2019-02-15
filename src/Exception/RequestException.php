@@ -26,6 +26,6 @@
 
 namespace JcgDev\EzGEDWsClient\Exception;
 
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\RequestException as GuzzleHttpRequestException;
 
-class RequestException extends RequestException {}
+class RequestException extends GuzzleHttpRequestException {}

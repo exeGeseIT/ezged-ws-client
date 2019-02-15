@@ -182,13 +182,7 @@ class Core extends Services
             'decode_content' => true,
         ], $options);
 
-        try {
-            
-            $_response = $this->guzzle->request($sconf->getMethod(), $sconf->getEndpoint(), $_options);
-
-        } catch (GuzzleHttpRequestException $e) {
-            throw new RequestException($e->getMessage(), $e->getCode(), $e);
-        }
+        $_response = $this->guzzle->request($sconf->getMethod(), $sconf->getEndpoint(), $_options);
 
         $this->_stateFill($_response);
 
