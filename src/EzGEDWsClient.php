@@ -98,13 +98,13 @@ class EzGEDWsClient
 
     /**
      *
-     * @param string $traceLogFilename
+     * @param string|null $traceLogFilename
      * @param string $mode
      * @return $this
      */
-    public function setTraceLogHandler(string $traceLogFilename, string $mode = 'w') {
-        $traceLogHandler = new SplFileObject($traceLogFilename,$mode);
-        if ( $traceLogHandler->isWritable() ) {
+    public function setTraceLogHandler(string $traceLogFilename = null, string $mode = 'w') {
+        $traceLogHandler = empty($traceLogFilename) ? null : new SplFileObject($traceLogFilename,$mode);
+        if ( null === $traceLogHandler || $traceLogHandler->isWritable() ) {
             $this->traceLogHandler = $traceLogHandler;
         }
         return $this;
