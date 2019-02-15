@@ -4,9 +4,9 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 $config = require __DIR__ . '/config.php';
 
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7;
 use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
+use JcgDev\EzGEDWsClient\Exception\RequestException;
 use JcgDev\EzGEDWsClient\EzGEDWsClient;
 use Symfony\Component\VarDumper\VarDumper;
 
@@ -107,7 +107,9 @@ try {
         $ezWS->updateRecord($idrow,'NOTEDEFRAIS','NOTEDEFRAIS_ID',$majFields)->trace();
 
         $ezWS->getRecordPages($idrow,'NOTEDEFRAIS')->trace();
-        dump( $ezWS->getEzResponse()->getData() );
+        foreach ( $ezWS->getEzResponse() as $ezBag ) {
+            dump( $ezBag->getData() );
+        }
     }
 
 
