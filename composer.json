@@ -23,10 +23,5 @@
     },
     "require-dev": {
         "symfony/var-dumper": "^3.4"
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0.x-dev"
-        }
     }
 }
