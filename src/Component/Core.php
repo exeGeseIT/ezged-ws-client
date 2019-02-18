@@ -56,7 +56,7 @@ class Core extends Services
      * @param string $serviceKey
      * @return ServiceConfig
      */
-    protected function getServiceConfig( string $serviceKey ) {
+    protected function getServiceConfig( $serviceKey ) {
         return array_key_exists($serviceKey, $this->services) ? $this->services[$serviceKey] : null;
     }
 
@@ -151,7 +151,7 @@ class Core extends Services
      * @param string $ezgedUrl
      * @param null|ressource $httpRequestTraceHandler
      */
-    public function __construct( string $ezgedUrl, $httpRequestTraceHandler = null )
+    public function __construct( $ezgedUrl, $httpRequestTraceHandler = null )
     {
         $this->_stateReset();
         $this->services = self::initServices();
@@ -169,7 +169,7 @@ class Core extends Services
     }
 
 
-    public function exec( string $serviceKey, array $params = [], array $options = [] ) {
+    public function exec( $serviceKey, array $params = [], array $options = [] ) {
 
         $this->_stateReset();
 

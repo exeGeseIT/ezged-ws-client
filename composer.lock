@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ae2477c0f66f9b27d54c4f497f5c33a9",
+    "content-hash": "675dcb1dec2e77414fef77bf909cbb1c",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -397,45 +397,38 @@
         },
         {
             "name": "symfony/var-dumper",
-            "version": "v4.2.2",
+            "version": "v3.4.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "85bde661b178173d85c6f11ea9d03b61d1212bb2"
+                "reference": "2159335b452d929cbb9921fc4eb7d1bfed32d0be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/85bde661b178173d85c6f11ea9d03b61d1212bb2",
-                "reference": "85bde661b178173d85c6f11ea9d03b61d1212bb2",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/2159335b452d929cbb9921fc4eb7d1bfed32d0be",
+                "reference": "2159335b452d929cbb9921fc4eb7d1bfed32d0be",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.1.3",
-                "symfony/polyfill-mbstring": "~1.0",
-                "symfony/polyfill-php72": "~1.5"
+                "php": "^5.5.9|>=7.0.8",
+                "symfony/polyfill-mbstring": "~1.0"
             },
             "conflict": {
-                "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0",
-                "symfony/console": "<3.4"
+                "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0"
             },
             "require-dev": {
                 "ext-iconv": "*",
-                "symfony/console": "~3.4|~4.0",
-                "symfony/process": "~3.4|~4.0",
                 "twig/twig": "~1.34|~2.4"
             },
             "suggest": {
                 "ext-iconv": "To convert non-UTF-8 strings to UTF-8 (or symfony/polyfill-iconv in case ext-iconv cannot be used).",
                 "ext-intl": "To show region name in time zone dump",
-                "symfony/console": "To use the ServerDumpCommand and/or the bin/var-dump-server script"
+                "ext-symfony_debug": ""
             },
-            "bin": [
-                "Resources/bin/var-dump-server"
-            ],
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "4.2-dev"
+                    "dev-master": "3.4-dev"
                 }
             },
             "autoload": {
@@ -469,7 +462,7 @@
                 "debug",
                 "dump"
             ],
-            "time": "2019-01-03T09:07:35+00:00"
+            "time": "2019-01-29T16:19:17+00:00"
         }
     ],
     "aliases": [],

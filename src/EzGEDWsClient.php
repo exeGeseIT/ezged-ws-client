@@ -73,7 +73,7 @@ class EzGEDWsClient
      * @param string $apiPwd
      * @param null|ressource $httpRequestTraceHandler
      */
-    public function __construct(string $ezgedUrl, string $apiUser, string $apiPwd, $httpRequestTraceHandler = null)
+    public function __construct( $ezgedUrl, $apiUser, $apiPwd, $httpRequestTraceHandler = null)
     {
         $this->apiUser = $apiUser;
         $this->apiPwd = md5($apiPwd);
@@ -90,9 +90,9 @@ class EzGEDWsClient
     }
 
 
-    private function _setTraceParam( string $calledMethod, array $param = []) {
+    private function _setTraceParam( $calledMethod, array $param = null) {
         $this->_called = $calledMethod;
-        $this->_args = $param;
+        $this->_args = (null === $param) ? [] : $param;
         return $this;
     }
 
@@ -103,7 +103,7 @@ class EzGEDWsClient
      * @param string $mode
      * @return $this
      */
-    public function setTraceLogHandler(string $traceLogFilename = null, string $mode = 'w') {
+    public function setTraceLogHandler( $traceLogFilename = null, $mode = 'w') {
         $traceLogHandler = empty($traceLogFilename) ? null : new SplFileObject($traceLogFilename,$mode);
         if ( null === $traceLogHandler || $traceLogHandler->isWritable() ) {
             $this->traceLogHandler = $traceLogHandler;
@@ -187,7 +187,7 @@ class EzGEDWsClient
      * @param bool|null $keepalive indique si la connexion doit être maintenue
      * @return $this
      */
-    public function connect ( bool $keepalive = null ) {
+    public function connect ( $keepalive = null ) {
         if ( null === $this->sessionid ) {
             $_params = [
                 'login' => $this->apiUser,
@@ -263,12 +263,12 @@ class EzGEDWsClient
      * @param array|null $filter  filtre de la forme ['field'=>, 'operator'=> 'value'=>]
      * @return $this
      */
-    public function requestView ( int $idview, int $offset = null, int $limit = null, array $filter = null ) {
+    public function requestView ( $idview, $offset = null, $limit = null, array $filter = null ) {
 
         $_params = [
-            'qryid' => $idview,
-            'limitstart' => $offset,
-            'limitgridlines' => $limit,
+            'qryid' => (int)$idview,
+            'limitstart' => (int)$offset,
+            'limitgridlines' => (int)$limit,
         ];
 
         if ( !empty($filter) ) {
@@ -307,8 +307,10 @@ class EzGEDWsClient
      * @return $this
      *
      */
-    public function upload ( string $fullFilename, array $params = [] ) {
-
+    public function upload ( $fullFilename, array $params = null ) {
+        if ( null === $params ) {
+            $params = [];
+        }
         $_params = array_merge(['name'=>basename($fullFilename), 'waitdir'=>null],$params);
 
         if ( !empty($_params['waitdir']) ) {
@@ -342,13 +344,13 @@ class EzGEDWsClient
      * @param int $limit    nombre de ligne de résulta retourné
      * @return $this
      */
-    public function getRecordPages ( int $idrecord, string $recordTable, int $offset = null, int $limit = null ) {
+    public function getRecordPages ( $idrecord, $recordTable, $offset = null, $limit = null ) {
 
         $_params = [
-            'docpakrsid' => $idrecord,
+            'docpakrsid' => (int)$idrecord,
             'docpaktbl' => $recordTable,
-            'limitstart' => $offset,
-            'limitgridlines' => $limit,
+            'limitstart' => (int)$offset,
+            'limitgridlines' => (int)$limit,
         ];
 
         $this->connect()
@@ -366,11 +368,11 @@ class EzGEDWsClient
      * @param int $idqry
      * @return $this
      */
-    public function createRecord( string $recordTable, array $fields, int $idqry = null ) {
+    public function createRecord( $recordTable, array $fields, $idqry = null ) {
 
         $_params = [
             'tfqn' => $recordTable,
-            'qryid' => $idqry,
+            'qryid' => (int)$idqry,
             'fields' => \json_encode(array_keys($fields)),
             'values' => \json_encode(array_values($fields)),
         ];
@@ -391,12 +393,12 @@ class EzGEDWsClient
      * @param array $fields
      * @return $this
      */
-    public function updateRecord( int $idrecord, string $recordTable, string $primaryField, array $fields ) {
+    public function updateRecord( $idrecord, $recordTable, $primaryField, array $fields ) {
 
         $_params = [
             'tfqn' => $recordTable,
             'field_ID' => $primaryField,
-            'value_ID' => $idrecord,
+            'value_ID' => (int)$idrecord,
 
             'fields' => \json_encode(array_keys($fields)),
             'values' => \json_encode(array_values($fields)),
@@ -418,11 +420,11 @@ class EzGEDWsClient
      * @param boolean $convertBeforeArchive FALSE pour garder le format d'origine, TRUE pour archiver seulement le fichier converti (selon le format)
      * @return $this
      */
-    public function addRecordPage( int $idrecord, string $recordTable, string $serverFilePath, bool $convertBeforeArchive = false ) {
+    public function addRecordPage( $idrecord, $recordTable, $serverFilePath, $convertBeforeArchive = false ) {
 
         $_params = [
             'tfqn' => $recordTable,
-            'rsid' => $idrecord,
+            'rsid' => (int)$idrecord,
             'file' => $serverFilePath,
             'ocr' => ($convertBeforeArchive ? 0 : 1),
         ];
@@ -441,10 +443,10 @@ class EzGEDWsClient
      * @param bool|null $instantState FALSE ==> On pool jusqu'à avoir le status 'Final'
      * @return $this
      */
-    public function getJobStatus( int $idjob, bool $instantState = null ) {
+    public function getJobStatus( $idjob, $instantState = null ) {
 
         $_params = [
-            'jobqueueid' => $idjob,
+            'jobqueueid' => (int)$idjob,
         ];
 
         $_keepAlive = $this->isKeepalive();
@@ -477,7 +479,7 @@ class EzGEDWsClient
     }
 
 
-    public function showFile ( int $idfile, string $fileHash, string $saveFilepath = null) {
+    public function showFile ( int $idfile, $fileHash, $saveFilepath = null) {
 
         $_params = [
             'fsfileid' => $idfile,

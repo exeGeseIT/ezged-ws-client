@@ -64,26 +64,26 @@ abstract class EzBagAbstract
         $this->elements = [];
     }
 
-    public function setProperties ( iterable $properties ) {
+    public function setProperties ( array $properties ) {
         foreach ($properties as $key) {
             $this->_properties[ strtolower($key) ] = null;
         }
         return $this;
     }
 
-    public function addMethod (string $methodName, callable $fn ) {
+    public function addMethod ( $methodName, callable $fn ) {
         $this->_callables[ $methodName ] = $fn;
         return $this;
     }
 
-    public function __get ( string $name ) {
+    public function __get ( $name ) {
         $_name = strtolower($name);
         if ( array_key_exists($_name,$this->_properties) ) {
             return $this->_properties[$_name];
         }
     }
 
-    public function __call ( string $methodName, $args ) {
+    public function __call ( $methodName, $args ) {
         if ( array_key_exists($methodName,$this->_callables) ) {
             return call_user_func_array($this->_callables[$methodName],$args);
         } elseif ( substr($methodName,0,3) === 'get' ) {
@@ -100,10 +100,12 @@ abstract class EzBagAbstract
      * @param array $requiredProperties
      * @return bool
      */
-    protected function validateData ( $data, array $requiredProperties = [] ) {
+    protected function validateData ( $data, array $requiredProperties = null ) {
         $isOK = true;
-        foreach ($requiredProperties as $prop) {
-            $isOK = $isOK && property_exists($data, $prop);
+        if ( null !== $requiredProperties ) {
+            foreach ($requiredProperties as $prop) {
+                $isOK = $isOK && property_exists($data, $prop);
+            }
         }
 
         $this->data = $isOK ? $data : null;
@@ -111,7 +113,7 @@ abstract class EzBagAbstract
         return $isOK;
     }
 
-    protected function setProperty( string $property, $value ) {
+    protected function setProperty( $property, $value ) {
         $this->_properties[ strtolower($property) ] = $value;
         return $this;
     }

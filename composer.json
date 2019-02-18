@@ -22,7 +22,7 @@
         "sort-packages": true
     },
     "require-dev": {
-        "symfony/var-dumper": "^4.2"
+        "symfony/var-dumper": "^3.4"
     },
     "extra": {
         "branch-alias": {

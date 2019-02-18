@@ -49,7 +49,7 @@ abstract class Services implements ServicesInterface
      * @param string $serviceKey
      * @return ServiceConfig
      */
-    abstract protected function getServiceConfig( string $serviceKey );
+    abstract protected function getServiceConfig( $serviceKey );
 
 
     /**
