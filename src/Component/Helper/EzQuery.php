@@ -34,7 +34,8 @@ namespace JcgDev\EzGEDWsClient\Component\Helper;
 class EzQuery extends EzGenericBag
 {
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
 
         $this->pkField = 'QRY_ID';
@@ -60,8 +61,9 @@ class EzQuery extends EzGenericBag
      *
      * @param object $stdClass
      */
-    public function init( $stdClass ) {
-        if ( $this->validateData($stdClass,['QRY_ID','QRY_DESC']) ) {
+    public function init($stdClass)
+    {
+        if ($this->validateData($stdClass,['QRY_ID','QRY_DESC'])) {
 
             foreach ($stdClass as $property => $value) {
                 if ( $property !== 'rows') {

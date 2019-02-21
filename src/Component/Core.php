@@ -27,9 +27,7 @@
 namespace JcgDev\EzGEDWsClient\Component;
 
 use GuzzleHttp\Client as GuzzleHttpClient;
-use GuzzleHttp\Exception\RequestException as GuzzleHttpRequestException;
 use JcgDev\EzGEDWsClient\Component\ServiceConfig;
-use JcgDev\EzGEDWsClient\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -56,17 +54,20 @@ class Core extends Services
      * @param string $serviceKey
      * @return ServiceConfig
      */
-    protected function getServiceConfig( string $serviceKey ) {
+    protected function getServiceConfig(string $serviceKey)
+    {
         return array_key_exists($serviceKey, $this->services) ? $this->services[$serviceKey] : null;
     }
 
 
-    private function _stateFill( ResponseInterface $response ) {
+    private function _stateFill(ResponseInterface $response)
+    {
         $this->statusCode = $response->getStatusCode();
         $this->statusMsg = $response->getReasonPhrase();
     }
 
-    private function _stateReset() {
+    private function _stateReset()
+    {
         $this->statusCode = null;
         $this->statusMsg = null;
         $this->rawJsonResponse = null;
@@ -76,33 +77,34 @@ class Core extends Services
         $this->errorMessage = null;
     }
 
-    private function _normalizeRawJsonResponse( ResponseInterface $response ) {
+    private function _normalizeRawJsonResponse(ResponseInterface $response)
+    {
         $contentTypes = implode('::',$response->getHeader('Content-Type'));
         $isJson = (false !== strpos($contentTypes,'application/json'));
         $isText = (false !== strpos($contentTypes,'text/plain'));
 
-        if ( !$isJson && !$isText ) {
+        if (!$isJson && !$isText) {
             $this->errorCode = 0;
             $this->errorMessage = sprintf('Response Content-Type: %s',$contentTypes);
             return;
         }
 
-        $this->rawJsonResponse = \json_decode( (string) $response->getBody() );
+        $this->rawJsonResponse = \json_decode((string) $response->getBody());
 
-        if ( null !== $this->rawJsonResponse ) {
+        if (null !== $this->rawJsonResponse) {
             $_rawJson = $this->rawJsonResponse;
-            if ( property_exists($_rawJson,'success') ) {
+            if (property_exists($_rawJson,'success')) {
                 $this->rawJsonResponse->errorcode = (true == $_rawJson->success) ? 0 : -1;
             }
 
-            if ( property_exists($_rawJson,'message') ) {
+            if (property_exists($_rawJson,'message')) {
                 $this->rawJsonResponse->errormsg = $_rawJson->message;
             }
 
-            if ( !property_exists($_rawJson,'rows') ) {
+            if (!property_exists($_rawJson,'rows')) {
                 $_row = [];
-                foreach ( $_rawJson as $key => $value ) {
-                    if ( !in_array($key,['success','message','errorcode','errormsg']) ) {
+                foreach ($_rawJson as $key => $value) {
+                    if (!in_array($key,['success','message','errorcode','errormsg'])) {
                         $_row[ $key ] = $value;
                     }
                 }
@@ -116,17 +118,17 @@ class Core extends Services
         return;
     }
 
-    private function parseResponse( ResponseInterface $response, array $filter = null) {
-
+    private function parseResponse(ResponseInterface $response, array $filter = null)
+    {
         $this->_normalizeRawJsonResponse($response);
 
-        if ( null == $this->rawJsonResponse ) {
+        if (null == $this->rawJsonResponse) {
             return $response;
         }
 
         $rows = is_array($this->rawJsonResponse->rows) ? $this->rawJsonResponse->rows : [ $this->rawJsonResponse->rows ];
 
-        if ( empty($rows) || empty($filter) ) {
+        if (empty($rows) || empty($filter)) {
             return $rows;
         }
 
@@ -134,7 +136,7 @@ class Core extends Services
         foreach ($rows as $row) {
             $_f = [];
             foreach ($filter as $key) {
-                if ( property_exists($row,$key) ) {
+                if (property_exists($row,$key)) {
                     $_f[ $key ] = $row->$key;
                 }
             }
@@ -142,7 +144,6 @@ class Core extends Services
         }
 
         return $filtered;
-
     }
 
 
@@ -151,7 +152,7 @@ class Core extends Services
      * @param string $ezgedUrl
      * @param null|ressource $httpRequestTraceHandler
      */
-    public function __construct( string $ezgedUrl, $httpRequestTraceHandler = null )
+    public function __construct(string $ezgedUrl, $httpRequestTraceHandler = null)
     {
         $this->_stateReset();
         $this->services = self::initServices();
@@ -161,7 +162,7 @@ class Core extends Services
             'cookies' => true,
         ];
 
-        if ( is_resource($httpRequestTraceHandler) ) {
+        if (is_resource($httpRequestTraceHandler)) {
             $options['debug'] = $httpRequestTraceHandler;
         }
 
@@ -169,8 +170,8 @@ class Core extends Services
     }
 
 
-    public function exec( string $serviceKey, array $params = [], array $options = [] ) {
-
+    public function exec(string $serviceKey, array $params = [], array $options = [])
+    {
         $this->_stateReset();
 
         $sconf = $this->getServiceConfig($serviceKey);
@@ -192,32 +193,39 @@ class Core extends Services
     }
 
     
-    public function getStatusCode() {
+    public function getStatusCode()
+    {
         return (int) $this->statusCode;
     }
 
-    public function getStatusMsg() {
+    public function getStatusMsg()
+    {
         return $this->statusMsg;
     }
     
-    public function getErrorCode() {
+    public function getErrorCode()
+    {
         return (int) $this->errorCode;
     }
 
-    public function getErrorMessage() {
+    public function getErrorMessage()
+    {
         return $this->errorMessage;
     }
 
-    public function getRawJsonResponse() {
+    public function getRawJsonResponse()
+    {
         return $this->rawJsonResponse;
     }
 
-    public function getResponse() {
+    public function getResponse()
+    {
         return $this->response;
     }
 
-    public function transform() {
-        if ( (null === $this->formater) || empty($this->response) ) {
+    public function transform()
+    {
+        if (null === $this->formater || empty($this->response)) {
             return $this->response;
         }
         return call_user_func($this->formater,$this->getResponse());

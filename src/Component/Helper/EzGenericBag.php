@@ -41,18 +41,21 @@ class EzGenericBag extends EzBagAbstract
      * @param string|null $pkField
      * @param string|null $table
      */
-    public function __construct(string $pkField = null, string $table = null) {
+    public function __construct(string $pkField = null, string $table = null)
+    {
         $this->pkField = $pkField;
         $this->table = $table;
         parent::__construct();
     }
 
 
-    public function getPKField() {
+    public function getPKField()
+    {
         return $this->pkField;
     }
 
-    public function getTable() {
+    public function getTable()
+    {
         return $this->table;
     }
 
@@ -60,9 +63,10 @@ class EzGenericBag extends EzBagAbstract
      *
      * @return int|null
      */
-    public function getId() {
+    public function getId()
+    {
         $pkfield = strtolower($this->getPKField());
-        if ( empty($pkfield) ) {
+        if (empty($pkfield)) {
             return null;
         }
         return (array_key_exists($pkfield,$this->_properties) ? $this->_properties[$pkfield] : null);
@@ -71,10 +75,11 @@ class EzGenericBag extends EzBagAbstract
     /**
      * @param object $stdClass
      */
-    public function init( $stdClass ) {
-        if ( $this->validateData($stdClass) ) {
+    public function init($stdClass)
+    {
+        if ($this->validateData($stdClass)) {
             foreach ($stdClass as $property => $value) {
-                if ( $property === 'rows') {
+                if ($property === 'rows') {
                     foreach ($value as $element) {
                         $this->elements[] = (new EzGenericBag())->init($element);
                     }

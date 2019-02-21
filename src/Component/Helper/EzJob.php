@@ -40,7 +40,8 @@ class EzJob extends EzGenericBag
      *      "JOBQUEUE_ID": 2439,
      *  }
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->pkField = 'JOBQUEUE_ID';
     }

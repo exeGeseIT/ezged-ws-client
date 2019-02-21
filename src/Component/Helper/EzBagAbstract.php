@@ -58,37 +58,42 @@ abstract class EzBagAbstract
     protected $data;
 
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->_properties = [];
         $this->_callables = [];
         $this->elements = [];
     }
 
-    public function setProperties ( iterable $properties ) {
+    public function setProperties(iterable $properties)
+    {
         foreach ($properties as $key) {
             $this->_properties[ strtolower($key) ] = null;
         }
         return $this;
     }
 
-    public function addMethod (string $methodName, callable $fn ) {
+    public function addMethod(string $methodName, callable $fn)
+    {
         $this->_callables[ $methodName ] = $fn;
         return $this;
     }
 
-    public function __get ( string $name ) {
+    public function __get(string $name)
+    {
         $_name = strtolower($name);
-        if ( array_key_exists($_name,$this->_properties) ) {
+        if (array_key_exists($_name,$this->_properties)) {
             return $this->_properties[$_name];
         }
     }
 
-    public function __call ( string $methodName, $args ) {
-        if ( array_key_exists($methodName,$this->_callables) ) {
+    public function __call(string $methodName, $args)
+    {
+        if (array_key_exists($methodName,$this->_callables)) {
             return call_user_func_array($this->_callables[$methodName],$args);
-        } elseif ( substr($methodName,0,3) === 'get' ) {
+        } elseif (substr($methodName,0,3) === 'get') {
             $_name = strtolower(substr($methodName,3));
-            if ( array_key_exists($_name,$this->_properties) ) {
+            if (array_key_exists($_name,$this->_properties)) {
                 return $this->_properties[$_name];
             }
         }
@@ -100,18 +105,18 @@ abstract class EzBagAbstract
      * @param array $requiredProperties
      * @return bool
      */
-    protected function validateData ( $data, array $requiredProperties = [] ) {
+    protected function validateData($data, array $requiredProperties = [])
+    {
         $isOK = true;
         foreach ($requiredProperties as $prop) {
             $isOK = $isOK && property_exists($data, $prop);
         }
-
         $this->data = $isOK ? $data : null;
-
         return $isOK;
     }
 
-    protected function setProperty( string $property, $value ) {
+    protected function setProperty(string $property, $value)
+    {
         $this->_properties[ strtolower($property) ] = $value;
         return $this;
     }
@@ -120,11 +125,13 @@ abstract class EzBagAbstract
      * 
      * @return array
      */
-    public function getElements() {
+    public function getElements()
+    {
         return $this->elements;
     }
 
-    public function getData() {
+    public function getData()
+    {
         return $this->data;
     }
 
@@ -133,5 +140,5 @@ abstract class EzBagAbstract
      * Function d'initialisation
      * @return $this
      */
-    abstract function init( $arg );
+    abstract function init($arg);
 }

@@ -51,16 +51,17 @@ class EzRow extends EzGenericBag
      *
      * @param object $stdClass
      */
-    public function init( $stdClass ) {
+    public function init($stdClass)
+    {
         $this->data = $stdClass;
         foreach ($stdClass as $property => $value) {
-            if ( $property !== 'rows') {
+            if ($property !== 'rows') {
                 $this->setProperty($property,$value);
             }
 
             //Autodetermination de la PK
             $matches = [];
-            if ( null === $this->getPKField() && preg_match('/(^.*)_ID$/i',$property,$matches) ) {
+            if (null === $this->getPKField() && preg_match('/(^.*)_ID$/i',$property,$matches)) {
                 $this->pkField = $matches[0];
                 $this->table = $matches[1];
             }

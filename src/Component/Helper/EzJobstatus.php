@@ -26,8 +26,6 @@
 
 namespace JcgDev\EzGEDWsClient\Component\Helper;
 
-use JcgDev\EzGEDWsClient\Component\Services;
-
 /**
  * Description of EzRow
  *
@@ -92,7 +90,8 @@ class EzJobstatus extends EzJob implements JobstatusInterface
      *      "JOBQUEUE_SECUSRID": 15
      *  }
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->setProperties( ['JOBQUEUE_ACTIVE', 'JOBQUEUE_STEP'] )
              ->setProperty('JOBQUEUE_STATUS', self::JOBSTATUS_PENDING);
@@ -102,7 +101,8 @@ class EzJobstatus extends EzJob implements JobstatusInterface
      *
      * @return string|null
      */
-    public function getStatus() {
+    public function getStatus()
+    {
         $status = null;
         switch ( $this->JOBQUEUE_STATUS ) {
             case self::JOBSTATUS_PENDING:
@@ -131,7 +131,8 @@ class EzJobstatus extends EzJob implements JobstatusInterface
      *
      * @return bool
      */
-    public function isSucceed() {
+    public function isSucceed()
+    {
         return in_array($this->getStatus(),[self::STATUS_ENDED_PURGEABLE, self::STATUS_ENDED_NOT_PURGEABLE]);
     }
 
@@ -139,7 +140,8 @@ class EzJobstatus extends EzJob implements JobstatusInterface
      *
      * @return bool
      */
-    public function isFailed() {
+    public function isFailed()
+    {
         return in_array($this->getStatus(),[self::STATUS_ERROR, self::STATUS_CRITICAL]);
     }
 
@@ -147,7 +149,8 @@ class EzJobstatus extends EzJob implements JobstatusInterface
      *
      * @return bool
      */
-    public function onFinalState() {
+    public function onFinalState()
+    {
         //return ($this->isFailed() || $this->isSucceed());
         $status = $this->getStatus();
         return (null !== $status && !in_array($status,[self::STATUS_PENDING, self::STATUS_QUEUED]));

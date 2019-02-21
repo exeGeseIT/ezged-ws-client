@@ -90,7 +90,8 @@ class EzGEDWsClient
     }
 
 
-    private function _setTraceParam( string $calledMethod, array $param = []) {
+    private function _setTraceParam( string $calledMethod, array $param = [])
+    {
         $this->_called = $calledMethod;
         $this->_args = $param;
         return $this;
@@ -103,63 +104,75 @@ class EzGEDWsClient
      * @param string $mode
      * @return $this
      */
-    public function setTraceLogHandler(string $traceLogFilename = null, string $mode = 'w') {
+    public function setTraceLogHandler(string $traceLogFilename = null, string $mode = 'w')
+    {
         $traceLogHandler = empty($traceLogFilename) ? null : new SplFileObject($traceLogFilename,$mode);
-        if ( null === $traceLogHandler || $traceLogHandler->isWritable() ) {
+        if (null === $traceLogHandler || $traceLogHandler->isWritable()) {
             $this->traceLogHandler = $traceLogHandler;
         }
         return $this;
     }
 
-    public function getSessionId() {
+    public function getSessionId()
+    {
         return $this->sessionid;
     }
 
-    public function getRequestStatusCode() {
+    public function getRequestStatusCode()
+    {
         return $this->requester->getStatusCode();
     }
 
-    public function getRequestStatusMessage() {
+    public function getRequestStatusMessage()
+    {
         return $this->requester->getStatusMsg();
     }
 
-    public function getErrorCode() {
+    public function getErrorCode()
+    {
         return $this->requester->getErrorCode();
     }
 
-    public function getErrorMessage() {
+    public function getErrorMessage()
+    {
         return $this->requester->getErrorMessage();
     }
 
-    public function getRawJsonResponse() {
+    public function getRawJsonResponse()
+    {
         return $this->requester->getRawJsonResponse();
     }
 
-    public function getResponse() {
+    public function getResponse()
+    {
         return $this->requester->getResponse();
     }
 
-    public function getEzResponse() {
+    public function getEzResponse()
+    {
         return $this->requester->transform();
     }
 
-    public function isSucceed() {
+    public function isSucceed()
+    {
         return (Core::ERRORCODE_OK === $this->getErrorCode());
     }
 
-    public function isKeepAlive() {
+    public function isKeepAlive()
+    {
         return (bool)$this->isKeepalive;
     }
 
 
-    public function trace( $withRaw = false ) {
+    public function trace($withRaw = false)
+    {
 
-        if ( null !== $this->traceLogHandler ) {
+        if (null !== $this->traceLogHandler) {
             $reqKey = $this->_called;
             $alive = $this->isKeepAlive() ? '|keepalive| ' : '';
             $log = [];
             $log[] = sprintf("---------- %s ( %s %s) ----------", $reqKey,$this->getSessionId(),$alive);
-            if ( !empty($this->_args) ) {
+            if (!empty($this->_args)) {
                 foreach ($this->_args as $key => $value) {
                     $_val = ( is_null($value) || is_scalar ($value) ) ? $value : \json_encode($value);
                     $log[] =  sprintf("  ~ %s: %s",$key,$_val);
@@ -187,8 +200,9 @@ class EzGEDWsClient
      * @param bool|null $keepalive indique si la connexion doit être maintenue
      * @return $this
      */
-    public function connect ( bool $keepalive = null ) {
-        if ( null === $this->sessionid ) {
+    public function connect(bool $keepalive = null)
+    {
+        if (null === $this->sessionid) {
             $_params = [
                 'login' => $this->apiUser,
                 'pwd' => $this->apiPwd,
@@ -196,7 +210,7 @@ class EzGEDWsClient
             $this->_setTraceParam(__METHOD__)
                  ->requester->exec(Core::REQ_AUTH, $_params);
 
-            if ( $this->isSucceed() ) {
+            if ($this->isSucceed()) {
                 $r = $this->getResponse();
                 $this->sessionid = $r[0]->sessionid;
             } else {
@@ -204,9 +218,9 @@ class EzGEDWsClient
             }
         }
 
-        if ( $keepalive && $this->getSessionId() && !$this->isKeepalive() ) {
+        if ($keepalive && $this->getSessionId() && !$this->isKeepalive()) {
             $this->requester->exec(Core::REQ_AUTH_KEEPALIVE);
-            if ( $this->isSucceed() ) {
+            if ($this->isSucceed()) {
                 $this->isKeepalive = true;
             }
         }
@@ -217,8 +231,9 @@ class EzGEDWsClient
      *
      * @return $this
      */
-    public function logout () {
-        if ( null !== $this->sessionid ) {
+    public function logout()
+    {
+        if (null !== $this->sessionid) {
             $_params = [
                 'sessionid' => $this->sessionid,
                 'secsesid' => $this->sessionid,
@@ -226,7 +241,7 @@ class EzGEDWsClient
             $this->_setTraceParam(__METHOD__)
                  ->requester->exec(Core::REQ_LOGOUT, $_params);
 
-            if ( $this->isSucceed() ) {
+            if ($this->isSucceed()) {
                 $this->sessionid = null;
                 $this->isKeepalive = false;
             }
@@ -238,7 +253,8 @@ class EzGEDWsClient
      *  Lister les vues de l'utilisateur
      * @return $this
      */
-    public function getPerimeter () {
+    public function getPerimeter()
+    {
         $this->connect()
              ->_setTraceParam(__METHOD__)
              ->requester->exec(Core::REQ_GET_PERIMETER);
@@ -263,20 +279,20 @@ class EzGEDWsClient
      * @param array|null $filter  filtre de la forme ['field'=>, 'operator'=> 'value'=>]
      * @return $this
      */
-    public function requestView ( int $idview, int $offset = null, int $limit = null, array $filter = null ) {
-
+    public function requestView(int $idview, int $offset = null, int $limit = null, array $filter = null)
+    {
         $_params = [
             'qryid' => $idview,
             'limitstart' => $offset,
             'limitgridlines' => $limit,
         ];
 
-        if ( !empty($filter) ) {
+        if (!empty($filter)) {
             $isKeyOk = (array_key_exists('field',$filter) && array_key_exists('operator',$filter) && array_key_exists('value',$filter) );
             $operator = array_key_exists('operator',$filter) ? strtolower($filter['operator']) : '--';
             $isOperatorOK = in_array($operator,['=', '>=', '<=', 'like']);
 
-            if ( $isKeyOk && $isOperatorOK ) {
+            if ($isKeyOk && $isOperatorOK) {
                 $_params['qryusrffqn'] = $filter['field'];
                 $_params['qryusrop'] = $operator;
                 $_params['qryusrval'] = $filter['value'];
@@ -307,11 +323,12 @@ class EzGEDWsClient
      * @return $this
      *
      */
-    public function upload ( string $fullFilename, array $params = [] ) {
+    public function upload(string $fullFilename, array $params = [])
+    {
 
         $_params = array_merge(['name'=>basename($fullFilename), 'waitdir'=>null],$params);
 
-        if ( !empty($_params['waitdir']) ) {
+        if (!empty($_params['waitdir'])) {
             $_params['mode'] = 'cold';
         }
 
@@ -342,8 +359,8 @@ class EzGEDWsClient
      * @param int $limit    nombre de ligne de résulta retourné
      * @return $this
      */
-    public function getRecordPages ( int $idrecord, string $recordTable, int $offset = null, int $limit = null ) {
-
+    public function getRecordPages(int $idrecord, string $recordTable, int $offset = null, int $limit = null)
+    {
         $_params = [
             'docpakrsid' => $idrecord,
             'docpaktbl' => $recordTable,
@@ -366,8 +383,8 @@ class EzGEDWsClient
      * @param int $idqry
      * @return $this
      */
-    public function createRecord( string $recordTable, array $fields, int $idqry = null ) {
-
+    public function createRecord(string $recordTable, array $fields, int $idqry = null)
+    {
         $_params = [
             'tfqn' => $recordTable,
             'qryid' => $idqry,
@@ -391,8 +408,8 @@ class EzGEDWsClient
      * @param array $fields
      * @return $this
      */
-    public function updateRecord( int $idrecord, string $recordTable, string $primaryField, array $fields ) {
-
+    public function updateRecord(int $idrecord, string $recordTable, string $primaryField, array $fields)
+    {
         $_params = [
             'tfqn' => $recordTable,
             'field_ID' => $primaryField,
@@ -418,8 +435,8 @@ class EzGEDWsClient
      * @param boolean $convertBeforeArchive FALSE pour garder le format d'origine, TRUE pour archiver seulement le fichier converti (selon le format)
      * @return $this
      */
-    public function addRecordPage( int $idrecord, string $recordTable, string $serverFilePath, bool $convertBeforeArchive = false ) {
-
+    public function addRecordPage(int $idrecord, string $recordTable, string $serverFilePath, bool $convertBeforeArchive = false)
+    {
         $_params = [
             'tfqn' => $recordTable,
             'rsid' => $idrecord,
@@ -441,8 +458,8 @@ class EzGEDWsClient
      * @param bool|null $instantState FALSE ==> On pool jusqu'à avoir le status 'Final'
      * @return $this
      */
-    public function getJobStatus( int $idjob, bool $instantState = null ) {
-
+    public function getJobStatus(int $idjob, bool $instantState = null)
+    {
         $_params = [
             'jobqueueid' => $idjob,
         ];
@@ -455,13 +472,13 @@ class EzGEDWsClient
              ->_setTraceParam(__METHOD__, ['$idjob'=>$idjob, '$instantState'=>\json_encode((bool)$instantState)])
              ->requester->exec(Core::REQ_GET_JOB_STATUS,$_params);
 
-        if ( !$instantState ) {
+        if (!$instantState) {
 
             $pooling_waitTime = 2;
             $countDown = (60 / $pooling_waitTime);
             $ezJob = new EzJobstatus();
             $isOK = $this->isSucceed();
-            while ( $isOK && !$ezJob->init($this->getResponse()[0])->onFinalState() ) {
+            while ($isOK && !$ezJob->init($this->getResponse()[0])->onFinalState()) {
                 //dump( sprintf('[%s]:>> waiting %ds for pooling.',$ezJob->getStatus(),$pooling_waitTime) );
                 $countDown--;
                 sleep($pooling_waitTime);
@@ -477,23 +494,20 @@ class EzGEDWsClient
     }
 
 
-    public function showFile ( int $idfile, string $fileHash, string $saveFilepath = null) {
-
+    public function showFile(int $idfile, string $fileHash, string $saveFilepath = null)
+    {
         $_params = [
             'fsfileid' => $idfile,
             'fsfileripe' => $fileHash,
             'download' => (!empty($saveFilepath) ? 1 : 0),
         ];
 
-
         $_options = [];
-        if ( !empty($saveFilepath) ) {
+        if (!empty($saveFilepath)) {
             $_options = [
                 'sink' => $saveFilepath
             ];
         }
-
-
 
         $this->connect()
              ->_setTraceParam(__METHOD__, ['$idfile'=>$idfile, '$fileHash'=>$fileHash, '$saveFilepath'=>$saveFilepath])

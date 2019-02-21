@@ -49,15 +49,15 @@ abstract class Services implements ServicesInterface
      * @param string $serviceKey
      * @return ServiceConfig
      */
-    abstract protected function getServiceConfig( string $serviceKey );
+    abstract protected function getServiceConfig(string $serviceKey);
 
 
     /**
      *
      * @return array
      */
-    public static function initServices() {
-
+    public static function initServices()
+    {
         $fns = [
 
             self::REQ_UPLOAD => function(array $reponse){
@@ -109,7 +109,6 @@ abstract class Services implements ServicesInterface
             },
             
         ];
-
 
 
 
@@ -307,6 +306,5 @@ abstract class Services implements ServicesInterface
 
         return $services;
     }
-
 
 }

@@ -26,9 +26,6 @@
 
 namespace JcgDev\EzGEDWsClient\Component\Helper;
 
-use JcgDev\EzGEDWsClient\Component\Helper\EzBagAbstract;
-use JcgDev\EzGEDWsClient\Component\Helper\EzQuery;
-
 /**
  * Description of EzFamily
  *
@@ -37,7 +34,8 @@ use JcgDev\EzGEDWsClient\Component\Helper\EzQuery;
 class EzFamily extends EzGenericBag
 {
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         
         $this->pkField = 'QRYSET_ID';
@@ -68,8 +66,9 @@ class EzFamily extends EzGenericBag
      *
      * @param object $stdClass
      */
-    public function init( $stdClass ) {
-        if ( $this->validateData($stdClass,['QRYSET_ID','QRYSET_DESC','rows']) ) {
+    public function init($stdClass)
+    {
+        if ($this->validateData($stdClass,['QRYSET_ID','QRYSET_DESC','rows'])) {
 
             $this->setProperty('type', 'family')
                  ->setProperty('QRYSET_ID', $stdClass->QRYSET_ID)

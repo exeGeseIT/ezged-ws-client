@@ -50,7 +50,8 @@ class ServiceConfig
      */
     private $responseFormater;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->service = null;
         $this->endpoint = '';
         $this->method = '';
@@ -65,10 +66,11 @@ class ServiceConfig
      * @param array $params
      * @return array
      */
-    public function buildRequestQuery(array $params) {
+    public function buildRequestQuery(array $params)
+    {
         $reqQuery = [];
 
-        if ( null !== $this->getService() ) {
+        if (null !== $this->getService()) {
             $reqQuery['service'] = $this->service;
         }
 
@@ -76,8 +78,8 @@ class ServiceConfig
         $reqQuery = array_merge($reqQuery,$this->getQuery());
 
         foreach ($params as $key => $value) {
-            if ( array_key_exists($key, $reqQuery) ) {
-                if ( is_array($value) ) {
+            if (array_key_exists($key, $reqQuery)) {
+                if (is_array($value)) {
                     $reqQuery = array_merge($reqQuery,$value);
                 } else {
                     $reqQuery[ $key ] = $value;
@@ -92,57 +94,69 @@ class ServiceConfig
 
 
 
-    public function setService($service) {
+    public function setService($service)
+    {
         $this->service = $service;
         return $this;
     }
 
-    public function setEndpoint($endpoint = '') {
+    public function setEndpoint($endpoint = '')
+    {
         $this->endpoint = trim($endpoint);
         return $this;
     }
 
-    public function setMethod($methodh = '') {
+    public function setMethod($methodh = '')
+    {
         $this->method = trim($methodh);
         return $this;
     }
 
-    public function setQuery(array $query) {
+    public function setQuery(array $query)
+    {
         $this->query = $query;
         return $this;
     }
 
-    public function setResponseFilter(array $filter) {
+    public function setResponseFilter(array $filter)
+    {
         $this->responseFilter = $filter;
         return $this;
     }
 
-    public function setResponseFormater(callable $fn) {
+    public function setResponseFormater(callable $fn)
+    {
         $this->responseFormater = $fn;
         return $this;
     }
 
-    public function getService() {
+    public function getService()
+    {
         return $this->service;
     }
 
-    public function getEndpoint() {
+    public function getEndpoint()
+    {
         return $this->endpoint;
     }
 
-    public function getMethod() {
+    public function getMethod()
+    {
         return ( empty($this->method) ? 'GET' : $this->method);
     }
 
-    public function getQuery() {
+    public function getQuery()
+    {
         return $this->query;
     }
 
-    public function getResponseFilter() {
+    public function getResponseFilter()
+    {
         return $this->responseFilter;
     }
 
-    public function getResponseFormater() {
+    public function getResponseFormater()
+    {
         return $this->responseFormater;
     }
 
