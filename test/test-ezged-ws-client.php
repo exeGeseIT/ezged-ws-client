@@ -9,6 +9,8 @@ use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
 use JcgDev\EzGEDWsClient\Exception\AuthenticationException;
 use JcgDev\EzGEDWsClient\Exception\RequestException;
 use JcgDev\EzGEDWsClient\EzGEDWsClient;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 
 try {
@@ -16,8 +18,12 @@ try {
     $traceLog = __DIR__ . '/tracelog.log';
     $httpRequestTraceHandler = fopen( __DIR__ . '/httprequest.log','a');
 
-    $ezWS = new EzGEDWsClient($config->api,$config->user,$config->pwd, $httpRequestTraceHandler);
+    $logger = new Logger('ezged-ws-logger');
+    $logger->pushHandler(new StreamHandler(__DIR__ . '/ws.log'), Logger::DEBUG);
+
+    $ezWS = new EzGEDWsClient($config->api, $config->user, $config->pwd, $logger, $httpRequestTraceHandler);
     $ezWS->setTraceLogHandler($traceLog);
+         //->setLogger($logger);
 
     // data/showdocs.php?fsfileid=2224&fsfileripe=345e04d4df8114924264fab40b21a6686e5e1850&mobile=1
     //$ezWS->showFile(2224,'345e04d4df8114924264fab40b21a6686e5e1850',__DIR__.'/download.jpg')->trace();

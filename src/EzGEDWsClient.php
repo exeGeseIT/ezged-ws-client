@@ -30,14 +30,21 @@ use GuzzleHttp\Psr7;
 use JcgDev\EzGEDWsClient\Component\Core;
 use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
 use JcgDev\EzGEDWsClient\Exception\AuthenticationException;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use SplFileObject;
 
 /**
  *
  * @author jc.glombard@gmail.com
  */
-class EzGEDWsClient
+class EzGEDWsClient implements LoggerAwareInterface
 {
+
+    use LoggerAwareTrait;
+
     /**
      *
      * @var Core
@@ -71,10 +78,13 @@ class EzGEDWsClient
      * @param string $ezgedUrl  ex: http://localhost/ezged3
      * @param string $apiUser
      * @param string $apiPwd
+     * @param null|LoggerInterface $logger
      * @param null|ressource $httpRequestTraceHandler
      */
-    public function __construct(string $ezgedUrl, string $apiUser, string $apiPwd, $httpRequestTraceHandler = null)
+    public function __construct(string $ezgedUrl, string $apiUser, string $apiPwd, LoggerInterface $logger = null, $httpRequestTraceHandler = null)
     {
+        $this->setLogger($logger);
+        
         $this->apiUser = $apiUser;
         $this->apiPwd = md5($apiPwd);
 
@@ -89,11 +99,32 @@ class EzGEDWsClient
 
     }
 
+    private function log($level, $message, array $context = [])
+    {
+        if (null !== $this->logger) {
+            $this->logger->log($level, $message, $context);
+        }
+    }
 
     private function _setTraceParam( string $calledMethod, array $param = [])
     {
         $this->_called = $calledMethod;
         $this->_args = $param;
+
+        if (null !== $this->logger) {
+            $alive = $this->isKeepAlive() ? '|keepalive| ' : '';
+            $log = [];
+            $log[] = sprintf("---------- %s ( %s %s) ----------", $this->_called, $this->getSessionId(), $alive);
+            if (!empty($this->_args)) {
+                foreach ($this->_args as $key => $value) {
+                    $_val = ( is_null($value) || is_scalar ($value) ) ? $value : \json_encode($value);
+                    $log[] =  sprintf("  ~ %s: %s",$key,$_val);
+                }
+                $log[] =  '---------- ';
+            }
+            $this->log(LogLevel::DEBUG, implode("\n",$log));
+        }
+
         return $this;
     }
 
@@ -223,6 +254,7 @@ class EzGEDWsClient
             if ($this->isSucceed()) {
                 $this->isKeepalive = true;
             }
+            $this->log(LogLevel::DEBUG, sprintf(' > Turn on keepAlive state: %s', ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
         }
         return $this;
     }
@@ -479,7 +511,7 @@ class EzGEDWsClient
             $ezJob = new EzJobstatus();
             $isOK = $this->isSucceed();
             while ($isOK && !$ezJob->init($this->getResponse()[0])->onFinalState()) {
-                //dump( sprintf('[%s]:>> waiting %ds for pooling.',$ezJob->getStatus(),$pooling_waitTime) );
+                $this->log(LogLevel::INFO, sprintf('[%s]:>> waiting %ds before next jobstatus request.',$ezJob->getStatus(),$pooling_waitTime));
                 $countDown--;
                 sleep($pooling_waitTime);
                 $this->requester->exec(Core::REQ_GET_JOB_STATUS,$_params);

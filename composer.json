@@ -4,7 +4,8 @@
     "type": "library",
     "require": {
         "php": ">=7.1",
-        "guzzlehttp/guzzle": "^6.3"
+        "guzzlehttp/guzzle": "^6.3",
+        "psr/log": "^1.1"
     },
     "license": "mit",
     "authors": [
@@ -22,6 +23,7 @@
         "sort-packages": true
     },
     "require-dev": {
+        "monolog/monolog": "^1.24",
         "symfony/var-dumper": "^4.2"
     },
     "extra": {
