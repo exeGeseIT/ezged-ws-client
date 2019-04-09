@@ -83,7 +83,9 @@ class EzGEDWsClient implements LoggerAwareInterface
      */
     public function __construct(string $ezgedUrl, string $apiUser, string $apiPwd, LoggerInterface $logger = null, $httpRequestTraceHandler = null)
     {
-        $this->setLogger($logger);
+        if (null !== $logger) {
+            $this->setLogger($logger);
+        }
         
         $this->apiUser = $apiUser;
         $this->apiPwd = md5($apiPwd);
