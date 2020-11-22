@@ -81,7 +81,7 @@ class Core extends Services
     {
         $contentTypes = implode('::',$response->getHeader('Content-Type'));
         $isJson = (false !== strpos($contentTypes,'application/json'));
-        $isText = (false !== strpos($contentTypes,'text/plain'));
+        $isText = (false !== strpos($contentTypes,'text/plain')) || (false !== strpos($contentTypes,'text/html'));
 
         if (!$isJson && !$isText) {
             $this->errorCode = 0;
