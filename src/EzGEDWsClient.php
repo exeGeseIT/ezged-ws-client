@@ -24,12 +24,12 @@
  * THE SOFTWARE.
  */
 
-namespace JcgDev\EzGEDWsClient;
+namespace ExeGeseIT\EzGEDWsClient;
 
 use GuzzleHttp\Psr7;
-use JcgDev\EzGEDWsClient\Component\Core;
-use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
-use JcgDev\EzGEDWsClient\Exception\AuthenticationException;
+use ExeGeseIT\EzGEDWsClient\Component\Core;
+use ExeGeseIT\EzGEDWsClient\Component\Helper\EzJobstatus;
+use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -352,7 +352,7 @@ class EzGEDWsClient implements LoggerAwareInterface
      * ]
      *
      *
-     * @param string $fullFilename  Nom complet du fichier (ie: c:/test/fact-5678.pdf)
+     * @param string $fullFilename  Nom complet du fichier (e.g: c:/test/fact-5678.pdf)
      * @param array $params
      * @return $this
      *

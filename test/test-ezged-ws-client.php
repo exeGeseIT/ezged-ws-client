@@ -5,10 +5,10 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 $config = require __DIR__ . '/config.php';
 
 use GuzzleHttp\Psr7;
-use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
-use JcgDev\EzGEDWsClient\Exception\AuthenticationException;
-use JcgDev\EzGEDWsClient\Exception\RequestException;
-use JcgDev\EzGEDWsClient\EzGEDWsClient;
+use ExeGeseIT\EzGEDWsClient\Component\Helper\EzJobstatus;
+use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
+use ExeGeseIT\EzGEDWsClient\Exception\RequestException;
+use ExeGeseIT\EzGEDWsClient\EzGEDWsClient;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 

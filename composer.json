@@ -1,26 +1,29 @@
 {
-    "name": "jcglombard/ezged-ws-client",
-    "description": "Wrapper for ezGED WS ",
+    "name": "exegeseit/ezged-ws-client",
+    "description": "This package aims to provide a client for ezGed Webservices",
     "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jean-Claude GLOMBARD",
+            "email": "jc.glombard@gmail.com"
+        }
+    ],
     "require": {
         "php": ">=7.1",
         "guzzlehttp/guzzle": "^6.3",
         "psr/log": "^1.1"
     },
-    "license": "mit",
-    "authors": [
-        {
-            "name": "Jean-Claude Glombard",
-            "email": "jc.glombard@gmail.com"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "JcgDev\\EzGEDWsClient\\": "src/"
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
         }
     },
-    "config": {
-        "sort-packages": true
+    "autoload": {
+        "psr-4": {
+            "ExeGeseIT\\EzGEDWsClient\\": "src/"
+        }
     },
     "require-dev": {
         "monolog/monolog": "^1.24",

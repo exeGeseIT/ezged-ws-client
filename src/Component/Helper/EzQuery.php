@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-namespace JcgDev\EzGEDWsClient\Component\Helper;
+namespace ExeGeseIT\EzGEDWsClient\Component\Helper;
 
 /**
  * Description of EzQuery

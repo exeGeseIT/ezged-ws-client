@@ -24,10 +24,10 @@
  * THE SOFTWARE.
  */
 
-namespace JcgDev\EzGEDWsClient\Component;
+namespace ExeGeseIT\EzGEDWsClient\Component;
 
 use GuzzleHttp\Client as GuzzleHttpClient;
-use JcgDev\EzGEDWsClient\Component\ServiceConfig;
+use ExeGeseIT\EzGEDWsClient\Component\ServiceConfig;
 use Psr\Http\Message\ResponseInterface;
 
 /**

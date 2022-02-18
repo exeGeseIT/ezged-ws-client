@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-namespace JcgDev\EzGEDWsClient\Exception;
+namespace ExeGeseIT\EzGEDWsClient\Exception;
 
 use GuzzleHttp\Exception\RequestException as GuzzleHttpRequestException;
 

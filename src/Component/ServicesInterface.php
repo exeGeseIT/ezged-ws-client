@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-namespace JcgDev\EzGEDWsClient\Component;
+namespace ExeGeseIT\EzGEDWsClient\Component;
 
 /**
  *

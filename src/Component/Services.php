@@ -24,15 +24,15 @@
  * THE SOFTWARE.
  */
 
-namespace JcgDev\EzGEDWsClient\Component;
+namespace ExeGeseIT\EzGEDWsClient\Component;
 
-use JcgDev\EzGEDWsClient\Component\Helper\EzFamily;
-use JcgDev\EzGEDWsClient\Component\Helper\EzGenericBag;
-use JcgDev\EzGEDWsClient\Component\Helper\EzJob;
-use JcgDev\EzGEDWsClient\Component\Helper\EzJobstatus;
-use JcgDev\EzGEDWsClient\Component\Helper\EzRow;
-use JcgDev\EzGEDWsClient\Component\ServiceConfig;
-use JcgDev\EzGEDWsClient\Component\ServicesInterface;
+use ExeGeseIT\EzGEDWsClient\Component\Helper\EzFamily;
+use ExeGeseIT\EzGEDWsClient\Component\Helper\EzGenericBag;
+use ExeGeseIT\EzGEDWsClient\Component\Helper\EzJob;
+use ExeGeseIT\EzGEDWsClient\Component\Helper\EzJobstatus;
+use ExeGeseIT\EzGEDWsClient\Component\Helper\EzRow;
+use ExeGeseIT\EzGEDWsClient\Component\ServiceConfig;
+use ExeGeseIT\EzGEDWsClient\Component\ServicesInterface;
 
 /**
  * Description of Services
