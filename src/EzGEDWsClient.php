@@ -107,25 +107,51 @@ class EzGEDWsClient implements LoggerAwareInterface
             $this->logger->log($level, $message, $context);
         }
     }
-
-    private function _setTraceParam( string $calledMethod, array $param = [])
+    
+    
+    private function getTraceTable(string $reqKey, bool $addResponse = false, bool $withRaw = false ): array
     {
+        $log = [];
+        $alive = $this->isKeepAlive() ? '|keepalive| ' : '';
+        $log[] = sprintf('---------- %s ( %s %s) ----------', $reqKey,$this->getSessionId(),$alive);
+
+        foreach ($this->_args as $key => $value) {
+            $_val = ( is_null($value) || is_scalar ($value) ) ? $value : \json_encode($value);
+            $log[] =  sprintf("  ~ %s: %s",$key,$_val);
+        }
+        
+        if ( $addResponse ) {
+            $log[] =  '---------- ';
+            $log[] =  sprintf('  STATUS >> [ %s ] - %s', $this->getRequestStatusCode(),$this->getRequestStatusMessage());
+            $log[] =  sprintf('   ERROR >> [ %s ] - %s', $this->getErrorCode(),$this->getErrorMessage());
+            if ( $withRaw ) {
+                $log[] =  sprintf(' RAW >> %s', \json_encode($this->getRawJsonResponse(),JSON_PRETTY_PRINT) );
+            }
+            $log[] =  sprintf('RESPONSE >> ', $reqKey);
+            $log[] =  sprintf('%s ', \json_encode($this->getResponse(),JSON_PRETTY_PRINT));
+        }
+        $log[] =  '------------------- ^ --------------------';
+
+        return $log;
+    }
+
+    /**
+     * 
+     * @param string $calledMethod
+     * @param array $param
+     * @return self
+     */
+    private function _setTraceParam( string $calledMethod, array $param = []): self
+    {
+        if (null == $this->logger) {
+            return $this;
+        }
+        
         $this->_called = $calledMethod;
         $this->_args = $param;
-
-        if (null !== $this->logger) {
-            $alive = $this->isKeepAlive() ? '|keepalive| ' : '';
-            $log = [];
-            $log[] = sprintf("---------- %s ( %s %s) ----------", $this->_called, $this->getSessionId(), $alive);
-            if (!empty($this->_args)) {
-                foreach ($this->_args as $key => $value) {
-                    $_val = ( is_null($value) || is_scalar ($value) ) ? $value : \json_encode($value);
-                    $log[] =  sprintf("  ~ %s: %s",$key,$_val);
-                }
-                $log[] =  '---------- ';
-            }
-            $this->log(LogLevel::DEBUG, implode("\n",$log));
-        }
+        
+        $traces = $this->getTraceTable($this->_called, $addResponse=false);
+        $this->log(LogLevel::DEBUG, implode("\n",$traces));
 
         return $this;
     }
@@ -135,9 +161,9 @@ class EzGEDWsClient implements LoggerAwareInterface
      *
      * @param string|null $traceLogFilename
      * @param string $mode
-     * @return $this
+     * @return self
      */
-    public function setTraceLogHandler(string $traceLogFilename = null, string $mode = 'w')
+    public function setTraceLogHandler(?string $traceLogFilename = null, string $mode = 'w'): self
     {
         $traceLogHandler = empty($traceLogFilename) ? null : new SplFileObject($traceLogFilename,$mode);
         if (null === $traceLogHandler || $traceLogHandler->isWritable()) {
@@ -197,43 +223,27 @@ class EzGEDWsClient implements LoggerAwareInterface
     }
 
 
-    public function trace($withRaw = false)
+    /**
+     * 
+     * @param bool $withRaw
+     * @return self
+     */
+    public function trace(bool $withRaw = false): self
     {
-
         if (null !== $this->traceLogHandler) {
-            $reqKey = $this->_called;
-            $alive = $this->isKeepAlive() ? '|keepalive| ' : '';
-            $log = [];
-            $log[] = sprintf("---------- %s ( %s %s) ----------", $reqKey,$this->getSessionId(),$alive);
-            if (!empty($this->_args)) {
-                foreach ($this->_args as $key => $value) {
-                    $_val = ( is_null($value) || is_scalar ($value) ) ? $value : \json_encode($value);
-                    $log[] =  sprintf("  ~ %s: %s",$key,$_val);
-                }
-                $log[] =  sprintf("---------- ", $reqKey);
-            }
-            $log[] =  sprintf("  STATUS >> [ %s ] - %s", $this->getRequestStatusCode(),$this->getRequestStatusMessage());
-            $log[] =  sprintf("   ERROR >> [ %s ] - %s", $this->getErrorCode(),$this->getErrorMessage());
-            if ( $withRaw ) {
-                $log[] =  sprintf(" RAW >> %s", \json_encode($this->getRawJsonResponse(),JSON_PRETTY_PRINT) );
-            }
-            $log[] =  sprintf("RESPONSE >> ", $reqKey);
-            $log[] =  sprintf("%s ", \json_encode($this->getResponse(),JSON_PRETTY_PRINT));
-            $log[] =  sprintf("-------------------- ^ --------------------\n", $reqKey);
-            $log[] = "\n";
-
-            $this->traceLogHandler->fwrite( implode("\n",$log) );
+            $traces = $this->getTraceTable($this->_called, $addResponse=true, $withRaw);
+            $this->traceLogHandler->fwrite( implode("\n",$traces) . "\n\n" );
         }
-
         return $this;
     }
 
     /**
-     *
-     * @param bool|null $keepalive indique si la connexion doit être maintenue
-     * @return $this
+     * 
+     * @param bool|null $keepalive
+     * @return self
+     * @throws AuthenticationException
      */
-    public function connect(bool $keepalive = null)
+    public function connect(?bool $keepalive = null): self
     {
         if (null === $this->sessionid) {
             $_params = [
@@ -262,10 +272,10 @@ class EzGEDWsClient implements LoggerAwareInterface
     }
 
     /**
-     *
-     * @return $this
+     * 
+     * @return self
      */
-    public function logout()
+    public function logout(): self
     {
         if (null !== $this->sessionid) {
             $_params = [
@@ -285,9 +295,9 @@ class EzGEDWsClient implements LoggerAwareInterface
 
     /**
      *  Lister les vues de l'utilisateur
-     * @return $this
+     * @return self
      */
-    public function getPerimeter()
+    public function getPerimeter(): self
     {
         $this->connect()
              ->_setTraceParam(__METHOD__)
@@ -308,12 +318,12 @@ class EzGEDWsClient implements LoggerAwareInterface
      *
      *
      * @param int $idview   identifiant de la vue (QRY_ID)
-     * @param int $offset   offset pour la pagination du résultat
-     * @param int $limit    nombre de ligne de résulta retourné
+     * @param int|null $offset   offset pour la pagination du résultat
+     * @param int|null $limit    nombre de ligne de résulta retourné
      * @param array|null $filter  filtre de la forme ['field'=>, 'operator'=> 'value'=>]
-     * @return $this
+     * @return self
      */
-    public function requestView(int $idview, int $offset = null, int $limit = null, array $filter = null)
+    public function requestView(int $idview, ?int $offset = null, ?int $limit = null, ?array $filter = null): self
     {
         $_params = [
             'qryid' => $idview,
@@ -321,7 +331,7 @@ class EzGEDWsClient implements LoggerAwareInterface
             'limitgridlines' => $limit,
         ];
 
-        if (!empty($filter)) {
+        if ( !empty($filter) ) {
             $isKeyOk = (array_key_exists('field',$filter) && array_key_exists('operator',$filter) && array_key_exists('value',$filter) );
             $operator = array_key_exists('operator',$filter) ? strtolower($filter['operator']) : '--';
             $isOperatorOK = in_array($operator,['=', '>=', '<=', 'like']);
@@ -354,10 +364,10 @@ class EzGEDWsClient implements LoggerAwareInterface
      *
      * @param string $fullFilename  Nom complet du fichier (e.g: c:/test/fact-5678.pdf)
      * @param array $params
-     * @return $this
+     * @return self
      *
      */
-    public function upload(string $fullFilename, array $params = [])
+    public function upload(string $fullFilename, array $params = []): self
     {
 
         $_params = array_merge(['name'=>basename($fullFilename), 'waitdir'=>null],$params);
@@ -389,11 +399,11 @@ class EzGEDWsClient implements LoggerAwareInterface
      *
      * @param int $idrecord   identifiant (PK) de l'enregistrement (ie. 'NOTEDEFRAIS_ID')
      * @param string $recordTable   nom de la table de l'enregistrement (ie. 'NOTEDEFRAIS')
-     * @param int $offset   offset pour la pagination du résultat
-     * @param int $limit    nombre de ligne de résulta retourné
-     * @return $this
+     * @param int|null $offset   offset pour la pagination du résultat
+     * @param int|null $limit    nombre de ligne de résulta retourné
+     * @return self
      */
-    public function getRecordPages(int $idrecord, string $recordTable, int $offset = null, int $limit = null)
+    public function getRecordPages(int $idrecord, string $recordTable, ?int $offset = null, ?int $limit = null): self
     {
         $_params = [
             'docpakrsid' => $idrecord,
@@ -414,10 +424,10 @@ class EzGEDWsClient implements LoggerAwareInterface
      *
      * @param string $recordTable
      * @param array $fields
-     * @param int $idqry
-     * @return $this
+     * @param int|null $idqry
+     * @return self
      */
-    public function createRecord(string $recordTable, array $fields, int $idqry = null)
+    public function createRecord(string $recordTable, array $fields, ?int $idqry = null): self
     {
         $_params = [
             'tfqn' => $recordTable,
@@ -440,9 +450,9 @@ class EzGEDWsClient implements LoggerAwareInterface
      * @param string $recordTable
      * @param string $primaryField
      * @param array $fields
-     * @return $this
+     * @return self
      */
-    public function updateRecord(int $idrecord, string $recordTable, string $primaryField, array $fields)
+    public function updateRecord(int $idrecord, string $recordTable, string $primaryField, array $fields): self
     {
         $_params = [
             'tfqn' => $recordTable,
@@ -466,10 +476,10 @@ class EzGEDWsClient implements LoggerAwareInterface
      * @param int $idrecord
      * @param string $recordTable
      * @param string $serverFilePath  Le chemin, sur le serveur, du fichier.
-     * @param boolean $convertBeforeArchive FALSE pour garder le format d'origine, TRUE pour archiver seulement le fichier converti (selon le format)
-     * @return $this
+     * @param bool $convertBeforeArchive FALSE pour garder le format d'origine, TRUE pour archiver seulement le fichier converti (selon le format)
+     * @return self
      */
-    public function addRecordPage(int $idrecord, string $recordTable, string $serverFilePath, bool $convertBeforeArchive = false)
+    public function addRecordPage(int $idrecord, string $recordTable, string $serverFilePath, bool $convertBeforeArchive = false): self
     {
         $_params = [
             'tfqn' => $recordTable,
@@ -490,9 +500,9 @@ class EzGEDWsClient implements LoggerAwareInterface
      *
      * @param int $idjob
      * @param bool|null $instantState FALSE ==> On pool jusqu'à avoir le status 'Final'
-     * @return $this
+     * @return self
      */
-    public function getJobStatus(int $idjob, bool $instantState = null)
+    public function getJobStatus(int $idjob, ?bool $instantState = null): self
     {
         $_params = [
             'jobqueueid' => $idjob,
@@ -527,8 +537,14 @@ class EzGEDWsClient implements LoggerAwareInterface
         return $this;
     }
 
-
-    public function showFile(int $idfile, string $fileHash, string $saveFilepath = null)
+    /**
+     * 
+     * @param int $idfile
+     * @param string $fileHash
+     * @param string|null $saveFilepath
+     * @return self
+     */
+    public function showFile(int $idfile, string $fileHash, ?string $saveFilepath = null): self
     {
         $_params = [
             'fsfileid' => $idfile,

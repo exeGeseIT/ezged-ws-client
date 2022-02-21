@@ -170,7 +170,7 @@ class Core extends Services
     }
 
 
-    public function exec(string $serviceKey, array $params = [], array $options = [])
+    public function exec(string $serviceKey, array $params = [], array $options = []): void
     {
         $this->_stateReset();
 
