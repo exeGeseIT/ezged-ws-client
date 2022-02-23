@@ -16,8 +16,15 @@ class EzQuery extends EzGenericBag
 
         $this->pkField = 'QRY_ID';
         
-        $properties = ['type', 'QRY_DESC', 'QRY_ID','QRY_ASK','QRY_RANK','QRY_PUBCNTCOR','QRY_TREE'];
-        $this->setProperties($properties);
+        $this->setProperties([
+            'type',
+            'QRY_DESC',
+            'QRY_ID',
+            'QRY_ASK',
+            'QRY_RANK',
+            'QRY_PUBCNTCOR',
+            'QRY_TREE',
+        ]);
     }
 
 
@@ -35,15 +42,16 @@ class EzQuery extends EzGenericBag
      *      "QRY_TREE": 0
      *  }
      *
-     * @param object $stdClass
+     * @param iterable $data
+     * @return self
      */
-    public function init($stdClass)
+    public function init(iterable $data): self
     {
-        if ($this->validateData($stdClass,['QRY_ID','QRY_DESC'])) {
-
-            foreach ($stdClass as $property => $value) {
-                if ( $property !== 'rows') {
-                    $this->setProperty($property,$value);
+        if ( $this->validateData($data,['QRY_ID','QRY_DESC']) ) {
+            
+            foreach ($data as $property => $value) {
+                if ('rows' === $property) {
+                    $this->setProperty($property, $value);
                 }
             }
         }

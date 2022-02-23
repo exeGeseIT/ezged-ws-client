@@ -16,41 +16,47 @@ class EzFamily extends EzGenericBag
         
         $this->pkField = 'QRYSET_ID';
         
-        $properties = ['type', 'QRYSET_DESC', 'QRYSET_ID'];
-        $this->setProperties($properties);
+        $this->setProperties([
+            'type', 
+            'QRYSET_DESC', 
+            'QRYSET_ID',
+        ]);
     }
 
 
     /**
      *
      * {
-        "type":"family",
-        "QRYSET_DESC":"Courriers",
-        "QRYSET_ID":"1",
-        "rows":[
-           {
-              "type":"query",
-              "QRY_ASK":"0",
-              "QRY_ID":"2",
-              "QRY_DESC":"Courriers à corriger",
-              "QRY_RANK":"20",
-              "QRY_PUBCNTCOR":"1",
-              "QRY_TREE":"0"
-           }
-        ]
-     }
+     *   "type":"family",
+     *   "QRYSET_DESC":"Courriers",
+     *   "QRYSET_ID":"1",
+     *   "rows":[
+     *      {
+     *         "type":"query",
+     *         "QRY_ASK":"0",
+     *         "QRY_ID":"2",
+     *         "QRY_DESC":"Courriers à corriger",
+     *         "QRY_RANK":"20",
+     *         "QRY_PUBCNTCOR":"1",
+     *         "QRY_TREE":"0"
+     *      }
+     *   ]
+     * }
      *
-     * @param object $stdClass
+     * @param iterable $data
+     * @return self
      */
-    public function init($stdClass)
+    public function init(iterable $data): self
     {
-        if ($this->validateData($stdClass,['QRYSET_ID','QRYSET_DESC','rows'])) {
+        if ( $this->validateData($data,['QRYSET_ID','QRYSET_DESC','rows']) ) {
+            
+            $this
+                ->setProperty('type', 'family')
+                ->setProperty('QRYSET_ID', self::extract('QRYSET_ID',$data))
+                ->setProperty('QRYSET_DESC', self::extract('QRYSET_DESC',$data))
+                ;
 
-            $this->setProperty('type', 'family')
-                 ->setProperty('QRYSET_ID', $stdClass->QRYSET_ID)
-                 ->setProperty('QRYSET_DESC', $stdClass->QRYSET_DESC);
-
-            foreach ($stdClass->rows as $queryObj) {
+            foreach (self::extract('rows',$data) as $queryObj) {
                 $this->elements[] = (new EzQuery())->init($queryObj);
             }
         }

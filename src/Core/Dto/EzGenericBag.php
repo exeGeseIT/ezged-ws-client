@@ -8,8 +8,8 @@ namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
  */
 class EzGenericBag extends EzBagAbstract
 {
-    protected $pkField = null;
-    protected $table = null;
+    protected string $pkField = null;
+    protected string $table = null;
 
 
     /**
@@ -25,12 +25,12 @@ class EzGenericBag extends EzBagAbstract
     }
 
 
-    public function getPkField()
+    public function getPkField(): string
     {
         return $this->pkField;
     }
 
-    public function getTable()
+    public function getTable(): string
     {
         return $this->table;
     }
@@ -39,28 +39,28 @@ class EzGenericBag extends EzBagAbstract
      *
      * @return int|null
      */
-    public function getId()
+    public function getId(): ?int
     {
         $pkfield = strtolower($this->getPkField());
-        if (empty($pkfield)) {
+        if ( empty($pkfield) ) {
             return null;
         }
-        return (array_key_exists($pkfield,$this->_properties) ? $this->_properties[$pkfield] : null);
+        return array_key_exists($pkfield, $this->_properties) ? $this->_properties[ $pkfield ] : null;
     }
 
     /**
-     * @param object $stdClass
+     * @param iterable $data
      */
-    public function init($stdClass)
+    public function init(iterable $data): self
     {
-        if ($this->validateData($stdClass)) {
-            foreach ($stdClass as $property => $value) {
-                if ($property === 'rows') {
+        if ( $this->validateData($data) ) {
+            foreach ($data as $property => $value) {
+                if ('rows' === $property) {
                     foreach ($value as $element) {
                         $this->elements[] = (new EzGenericBag())->init($element);
                     }
                 } else {
-                    $this->setProperty($property,$value);
+                    $this->setProperty($property, $value);
                 }
             }
         }

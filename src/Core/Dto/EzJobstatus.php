@@ -3,7 +3,7 @@
 namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
 
 /**
- * Description of EzRow
+ * Description of EzJobstatus
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
@@ -41,6 +41,9 @@ class EzJobstatus extends EzJob implements EzJobstatusInterface
      * Ce status est également utilisé pour mettre un job en attente de l'indexation complète de son document (Centre d'indexation)
      */
     const STATUS_CRITICAL = 'CRITICAL';
+    
+    protected static $STATE_IS_SUCCEED = [self::STATUS_ENDED_PURGEABLE, self::STATUS_ENDED_NOT_PURGEABLE];
+    protected static $STATE_IS_FAILED = [self::STATUS_ERROR, self::STATUS_CRITICAL];
 
 
     /**
@@ -74,62 +77,51 @@ class EzJobstatus extends EzJob implements EzJobstatusInterface
     }
 
     /**
-     *
      * @return string|null
      */
-    public function getStatus()
+    public function getStatus(): ?string
     {
-        $status = null;
-        switch ( $this->JOBQUEUE_STATUS ) {
+        switch ( $this->__get('JOBQUEUE_STATUS') ) {
             case self::JOBSTATUS_PENDING:
-                $status = self::STATUS_PENDING;
-                break;
+                return self::STATUS_PENDING;
             case self::JOBSTATUS_QUEUED:
-                $status = self::STATUS_QUEUED;
-                break;
+                return self::STATUS_QUEUED;
             case self::JOBSTATUS_ENDED_PURGEABLE:
-                $status = self::STATUS_ENDED_PURGEABLE;
-                break;
+                return self::STATUS_ENDED_PURGEABLE;
             case self::JOBSTATUS_ENDED_NOT_PURGEABLE:
-                $status = self::STATUS_ENDED_NOT_PURGEABLE;
-                break;
+                return self::STATUS_ENDED_NOT_PURGEABLE;
             case self::JOBSTATUS_ERROR:
-                $status = self::STATUS_ERROR;
-                break;
+                return self::STATUS_ERROR;
             case self::JOBSTATUS_CRITICAL:
-                $status = self::STATUS_CRITICAL;
-                break;
+                return self::STATUS_CRITICAL;
+            default:
+                return null;
         }
-        return $status;
     }
 
     /**
-     *
      * @return bool
      */
-    public function isSucceed()
+    public function isSucceed(): bool
     {
-        return in_array($this->getStatus(),[self::STATUS_ENDED_PURGEABLE, self::STATUS_ENDED_NOT_PURGEABLE]);
+        return in_array($this->getStatus(), self::$STATE_IS_SUCCEED);
     }
 
     /**
-     *
      * @return bool
      */
-    public function isFailed()
+    public function isFailed(): bool
     {
-        return in_array($this->getStatus(),[self::STATUS_ERROR, self::STATUS_CRITICAL]);
+        return in_array($this->getStatus(), self::$STATE_IS_FAILED);
     }
 
     /**
-     *
      * @return bool
      */
-    public function onFinalState()
+    public function onFinalState(): bool
     {
-        //return ($this->isFailed() || $this->isSucceed());
         $status = $this->getStatus();
-        return (null !== $status && !in_array($status,[self::STATUS_PENDING, self::STATUS_QUEUED]));
+        return null !== $status && !in_array($status,[self::STATUS_PENDING, self::STATUS_QUEUED]);
     }
 
 }

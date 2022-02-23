@@ -25,14 +25,15 @@ class EzRow extends EzGenericBag
      *      "type": "row"
      *  }
      *
-     * @param object $stdClass
+     * @param iterable $data
+     * @return self
      */
-    public function init($stdClass)
+    public function init(iterable $data): self
     {
-        $this->data = $stdClass;
-        foreach ($stdClass as $property => $value) {
-            if ($property !== 'rows') {
-                $this->setProperty($property,$value);
+        $this->validateData($data);
+        foreach ($data as $property => $value) {
+            if ('rows' !== $property) {
+                $this->setProperty($property, $value);
             }
 
             //Autodetermination de la PK
@@ -44,5 +45,4 @@ class EzRow extends EzGenericBag
         }
         return $this;
     }
-
 }

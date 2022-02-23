@@ -2,13 +2,15 @@
 
 namespace ExeGeseIT\EzGEDWsClient\Core;
 
-use ExeGeseIT\EzGEDWsClient\Core\Dto\EzFamily;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzGenericBag;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJob;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJobstatus;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzRow;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServiceConfigurator;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
+use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\KeepaliveResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 
 /**
  * Description of Services
@@ -18,8 +20,6 @@ use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
 abstract class EzGEDAbstract implements EzGEDServicesInterface
 {
 
-    const ERRORCODE_OK = 0;
-    
     private static array $services;
 
     /**
@@ -35,31 +35,13 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
     
     public function __construct()
     {
-        self::$services = $this->initServices();
-    }
-
-
-    /**
-     *
-     * @return array
-     */
-    private function initServices(): array
-    {
+        self::$services = [];
+        
         $fns = [
 
             self::REQ_UPLOAD => function(array $reponse){
                 $ezBag = (new EzGenericBag())->init( $reponse[0] );
                 return $ezBag;
-            },
-
-            self::REQ_GET_PERIMETER => function(array $reponse){
-                $r = $reponse[0]->rows;
-                $out = [];
-                foreach ($r as $stdClass) {
-                    $ezFamily = (new EzFamily())->init( $stdClass );
-                    $out[ $ezFamily->getId() ] = $ezFamily;
-                }
-                return $out;
             },
 
             self::REQ_EXEC_REQUEST => function(array $reponse){
@@ -98,11 +80,10 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
         ];
 
 
-
-        $services = [];
+        
 
         // Authent: sec/authenticate
-        $services[ self::REQ_AUTH ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_AUTH ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('sec/authenticate')
             ->setMethod('GET')
@@ -110,25 +91,19 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'login' => '',
                 'pwd' => '',
             ])
-            ->setResponseFilter([
-                'sessionid',
-            ]);
+            ->setReturnClass(ConnectResponse::class)
+            ;
 
         // KeepAlive: secses/keepalive
-        $services[ self::REQ_AUTH_KEEPALIVE ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_AUTH_KEEPALIVE ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('secses/keepalive')
             ->setMethod('POST')
-            ->setResponseFilter([
-                'countsignbook',
-                'countcorrection',
-                'counttrash',
-                'countmessage',
-                'countworkflow',
-            ]);
+            ->setReturnClass(KeepaliveResponse::class)
+            ;
 
         // Logout: secses/delete
-        $services[ self::REQ_LOGOUT ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_LOGOUT ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('secses/delete')
             ->setMethod('GET')
@@ -136,10 +111,10 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'sessionid' => '',
                 'secsesid' => '',
             ])
-            ->setResponseFilter([]);
+            ;
 
         // Récupérer un fichier
-        $services[ self::REQ_DOWNLOAD_FILE ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_DOWNLOAD_FILE ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('showdocs.php')
             ->setMethod('GET')
             ->setQuery([
@@ -152,7 +127,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ]);
 
         // Upload d'un Fichier
-        $services[ self::REQ_UPLOAD ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_UPLOAD ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('pupload.php')
             ->setMethod('POST')
             ->setQuery([
@@ -167,15 +142,15 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setResponseFormater($fns[self::REQ_UPLOAD]);
 
         // Lister les vues de l'utilisateur: query/gettreearchive
-        $services[ self::REQ_GET_PERIMETER ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_GET_PERIMETER ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('query/gettreearchive')
             ->setMethod('GET')
-            ->setResponseFilter([])
-            ->setResponseFormater( $fns[self::REQ_GET_PERIMETER] );
+            ->setReturnClass(PerimeterResponse::class)
+            ;
 
         // Afficher les résultats d'une vue: query/gettreearchive
-        $services[ self::REQ_EXEC_REQUEST ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_EXEC_REQUEST ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('query/getexec')
             ->setMethod('GET')
@@ -192,7 +167,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setResponseFormater( $fns[self::REQ_EXEC_REQUEST] );
 
         // Voir la liste des fichiers (image) d'un enregistrement
-        $services[ self::REQ_GET_RECORD_FILES ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_GET_RECORD_FILES ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('docpak/loadalllastrevision')
             ->setMethod('GET')
@@ -220,7 +195,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setResponseFormater( $fns[self::REQ_GET_RECORD_FILES] );
 
         // Créer un enregistrement
-        $services[ self::REQ_CREATE_RECORD ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_CREATE_RECORD ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('doctbl/insertrow')
             ->setMethod('POST')
@@ -235,7 +210,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setResponseFormater( $fns[self::REQ_CREATE_RECORD] );
 
         // Mettre à jour un enregistrement
-        $services[ self::REQ_UPDATE_RECORD ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_UPDATE_RECORD ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('doctbl/updaterow')
             ->setMethod('POST')
@@ -258,7 +233,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
          *  - start : -1
          *  - ocr : 1 pour garder le format d'origine, 0 pour archiver seulement le fichier converti (selon le format).
          */
-        $services[ self::REQ_ADD_RECORD_FILE ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_ADD_RECORD_FILE ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('docpak/addpages')
             ->setMethod('POST')
@@ -280,7 +255,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
          * paramètres :
          *  - jobqueueid : l' ID du job.
          */
-        $services[ self::REQ_GET_JOB_STATUS ] = (new EzGEDServiceConfigurator())
+        self::$services[ self::REQ_GET_JOB_STATUS ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
             ->setServicename('jobqueue/load')
             ->setMethod('GET')
@@ -290,8 +265,6 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setResponseFilter([])
             ->setResponseFormater( $fns[self::REQ_GET_JOB_STATUS] );
 
-
-        return $services;
     }
 
 }
