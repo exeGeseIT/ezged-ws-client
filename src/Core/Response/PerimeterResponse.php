@@ -14,7 +14,7 @@ class PerimeterResponse extends EzGEDResponseAbstract
 {
     protected function initializeData(array $data): void
     {
-        $rows = array_key_exists('rows', $data) ? $data['rows'] : null;
+        $rows = array_key_exists('rows', $data) ? $data['rows'][0]['rows'] : null;
         if ( $rows ) {
             $out = [];
             foreach ($rows as $item) {

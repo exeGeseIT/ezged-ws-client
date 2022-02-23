@@ -116,5 +116,5 @@ abstract class EzBagAbstract implements EzBagInterface
      * Function d'initialisation
      * @return EzBagInterface
      */
-    abstract function init($arg): EzBagInterface;
+    abstract function init(iterable $data): EzBagInterface;
 }

@@ -21,8 +21,9 @@ class EzGEDClient
     private string $apiUser;
     private string $apiPwd;
     
-    private ?string $sessionid = null;
     private bool $keepalive = false;
+    private ?string $sessionid = null;
+    private ?array $cookie = null;
     
     private EzGED $ezGED;
     
@@ -59,43 +60,75 @@ class EzGEDClient
         
         $finalHttpclient = $httpclient ?? HttpClient::create([
             'verify_peer' => false,
-            'base_uri' => rtrim($ezgedUrl ?? '','/') . '/data/',
+            'base_uri' => rtrim($ezgedUrl ?? '/ezged','/') . '/data/',
             'query' => [
                 'format' => 'json',
-                'session' => $this->sessionid ?? '',
             ],
         ]);
         $this->ezGED = new EzGED($finalHttpclient);
     }
     
-    
-    public function connect(bool $withKeepalive = false): self
+    private function getParams(array $params = []): array
     {
-        if (null === $this->sessionid) {
-            $_params = [
-                'login' => $this->apiUser,
-                'pwd' => $this->apiPwd,
-            ];
-            
-            /** @var ConnectResponse $ezResponse */
-            $ezResponse = $this->ezGED->exec(EzGED::REQ_AUTH, $_params);
-
-            if ( $ezResponse->isSucceed() ) {
-                $this->sessionid = $ezResponse->getSessionid();
-            } else {
-                throw new AuthenticationException($ezResponse->getMessage(), $ezResponse->getMessage());
-            }
+        return array_merge($params, [
+            'session' => $this->sessionid ?? '',
+        ]);
+    }
+    
+    private function getOptions(): array
+    {
+        return [
+            'headers' => [
+                'Cookie' => implode(',', $this->cookie ?? []),
+            ],
+        ];
+    }
+    
+    /**
+     * 
+     * @param bool $withKeepalive
+     * @return self
+     * @throws AuthenticationException
+     */
+    private function authent(bool $withKeepalive = false): self
+    {
+        if ( !$this->sessionid ) {
+            $this->connect($withKeepalive);
         }
+        return $this;
+    }
+    
+    
+    /**
+     * 
+     * @param bool $withKeepalive
+     * @return ConnectResponse
+     * @throws AuthenticationException
+     */
+    public function connect(bool $withKeepalive = false): ConnectResponse
+    {
+        $params = [
+            'login' => $this->apiUser,
+            'pwd' => $this->apiPwd,
+        ];
 
-        if ( $withKeepalive && !$this->isKeepalive() ) {
-            /** @var KeepaliveResponse $ezResponse */
-            $ezResponse = $this->ezGED->exec(EzGED::REQ_AUTH_KEEPALIVE);
-            if ( $ezResponse->isSucceed() ) {
+        /** @var ConnectResponse $ezResponse */
+        $ezResponse = $this->ezGED->exec(EzGED::REQ_AUTH, $params);
+
+        if ( !$ezResponse->isSucceed() ) {
+            throw new AuthenticationException($ezResponse->getMessage(), $ezResponse->getMessage());
+        }
+        
+        $this->sessionid = $ezResponse->getSessionid();
+        $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
+
+        if ( $withKeepalive ) {
+            if ( $this->ezGED->exec(EzGED::REQ_AUTH_KEEPALIVE, $this->getParams(), $this->getOptions())->isSucceed() ) {
                 $this->keepalive = true;
             }
             $this->logger && $this->logger->debug( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->sessionid, ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
         }
-        return $this;
+        return $ezResponse;
     }
     
     
@@ -105,7 +138,7 @@ class EzGEDClient
      */
     public function getPerimeter(): PerimeterResponse
     {
-        return $this->connect()->ezGED->exec(EzGED::REQ_GET_PERIMETER);
+        return $this->authent()->ezGED->exec(EzGED::REQ_GET_PERIMETER, $this->getParams(), $this->getOptions());
     }
     
     

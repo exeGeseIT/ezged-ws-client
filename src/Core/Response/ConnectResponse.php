@@ -23,10 +23,9 @@ class ConnectResponse extends EzGEDResponseAbstract
         $rows = array_key_exists('rows', $data) ? $data['rows'] : null;
         if ( $rows ) {
             $this->sessionid = $rows['sessionid'];
+            unset($rows['sessionid']);
         }
-        
-        unset($data['rows']);
-        $this->data = $data;
+        $this->data = $rows ?? [];
     }
 
 }

@@ -23,14 +23,12 @@ class EzGED extends EzGEDAbstract
     }
     
     
-    public function exec(string $serviceKey, array $params = [], array $options = []): EzGEDResponseInterface
+    public function exec(string $serviceKey, array $queryParams = [], array $options = []): EzGEDResponseInterface
     {
         $conf = $this->getServiceConfig($serviceKey);
-
-        //$this->formater = $conf->getResponseFormater();
-
+        
         $response = $this->httpclient->request($conf->getMethod(), $conf->getEndpoint(), array_merge([
-            'query' => $conf->getQueryParameters($params),
+            'query' => $conf->getQueryParameters($queryParams),
         ], $options));
         
         return $conf->getReturn($response);

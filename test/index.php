@@ -13,11 +13,22 @@ $httpclient = HttpClient::create([
     'base_uri' => $config['api'] . '/data/',
     'query' => [
         'format' => 'json',
-        //'session' => $this->sessionid ?? '',
     ],
 ]);
 
 $ezWS = new EzGEDClient($httpclient, $config['user'], $config['pwd']);
 
+/* */
 $reponse = $ezWS->connect(true);
-dump(['response' =>$ezWS]);
+dump([
+    'message' => $reponse->getMessage(),
+    'connect' => $reponse->getHttpHeaders(),
+    '$ezWS' => $ezWS,
+]);
+
+/* */
+$reponse = $ezWS->getPerimeter();
+dump(['getPerimeter' => $reponse]);
+
+/*
+*/

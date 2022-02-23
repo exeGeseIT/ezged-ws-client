@@ -8,8 +8,8 @@ namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
  */
 class EzGenericBag extends EzBagAbstract
 {
-    protected string $pkField = null;
-    protected string $table = null;
+    protected ?string $pkField = null;
+    protected ?string $table = null;
 
 
     /**
@@ -17,7 +17,7 @@ class EzGenericBag extends EzBagAbstract
      * @param string|null $pkField
      * @param string|null $table
      */
-    public function __construct(string $pkField = null, string $table = null)
+    public function __construct(?string $pkField = null, ?string $table = null)
     {
         $this->pkField = $pkField;
         $this->table = $table;
@@ -25,12 +25,12 @@ class EzGenericBag extends EzBagAbstract
     }
 
 
-    public function getPkField(): string
+    public function getPkField(): ?string
     {
         return $this->pkField;
     }
 
-    public function getTable(): string
+    public function getTable(): ?string
     {
         return $this->table;
     }
@@ -41,10 +41,7 @@ class EzGenericBag extends EzBagAbstract
      */
     public function getId(): ?int
     {
-        $pkfield = strtolower($this->getPkField());
-        if ( empty($pkfield) ) {
-            return null;
-        }
+        $pkfield = strtolower($this->getPkField() ?? '');
         return array_key_exists($pkfield, $this->_properties) ? $this->_properties[ $pkfield ] : null;
     }
 

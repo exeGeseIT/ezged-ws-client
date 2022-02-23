@@ -44,7 +44,7 @@ class KeepaliveResponse extends EzGEDResponseAbstract
 
     protected function initializeData(array $data): void
     {
-        $rows = array_key_exists('rows', $data) ? $data['rows'] : null;
+        $rows = array_key_exists('rows', $data) ? $data['rows'][0] : null;
         if ( $rows ) {
             foreach ([
                 'countsignbook',

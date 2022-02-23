@@ -22,6 +22,7 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
     
     protected int $error = 0;
     protected ?string $message = '';
+    protected int $count = 0;
 
     /**
      * Gets the HTTP headers of the http response.
@@ -91,7 +92,12 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
     {
         return $this->message;
     }
-
+    
+    public function getCount(): int
+    {
+        return $this->count;
+    }
+    
     
     public function getData()
     {
@@ -116,6 +122,7 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
             */
             $payload = $httpresponse->toArray($throw=true);
             
+            $this->count = isset($payload['count']) ? $payload['count'] : 0;
             $this->error = isset($payload['errorcode']) ? $payload['errorcode'] : 0;
             $this->message = isset($payload['errormsg']) ? $payload['errormsg'] : '';
             
