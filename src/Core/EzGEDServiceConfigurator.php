@@ -49,16 +49,13 @@ class EzGEDServiceConfigurator
      */
     public function getQueryParameters(array $params = []): array
     {
-        unset($params['service']);
-        $reqQuery = $this->getQuery();
-
-        foreach ($params as $key => $value) {
-            if ( array_key_exists($key, $reqQuery) ) {
-                if ( is_array($value) ) {
-                    $reqQuery = array_merge($reqQuery,$value);
-                } else {
-                    $reqQuery[ $key ] = $value;
-                }
+        $reqQuery = [];
+        foreach ($this->getQuery() as $querykey => $defaultValue) {
+            if ( array_key_exists($querykey, $params) ) {
+                $value = $params[ $querykey ] ?? $defaultValue;
+                isset($value) && $reqQuery[ $querykey ] = $value;
+            } else {
+                isset($defaultValue) && $reqQuery[ $querykey ] = $defaultValue;
             }
         }
         return $reqQuery;
@@ -101,7 +98,7 @@ class EzGEDServiceConfigurator
     public function getQuery(): array
     {
         $_q = empty($this->getServicename()) ? [] : ['service' => $this->getServicename()];
-        return array_merge($this->query, $_q);
+        return array_merge($_q, $this->query);
     }
 
     public function setQuery(array $query): self
