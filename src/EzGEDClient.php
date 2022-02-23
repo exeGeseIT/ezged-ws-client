@@ -3,10 +3,11 @@
 namespace ExeGeseIT\EzGEDWsClient;
 
 use ExeGeseIT\EzGEDWsClient\Core\EzGED;
+use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
-use ExeGeseIT\EzGEDWsClient\Core\Response\KeepaliveResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
+use ExeGeseIT\EzGEDWsClient\Exception\LogoutException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -129,6 +130,34 @@ class EzGEDClient
             $this->logger && $this->logger->debug( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->sessionid, ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
         }
         return $ezResponse;
+    }
+    
+    
+    /**
+     * 
+     * @return self
+     * @throws LogoutException
+     */
+    public function logout(): self
+    {
+        $params = [
+            'sessionid' => $this->sessionid,
+            'secsesid' => $this->sessionid,
+        ];
+
+        /** @var EzGEDResponseInterface $ezResponse */
+        $ezResponse = $this->ezGED->exec(EzGED::REQ_LOGOUT, $params);
+        if ( !$ezResponse->isSucceed() ) {
+            throw new LogoutException($ezResponse->getMessage(), $ezResponse->getMessage());
+        }
+        
+        $this->logger && $this->logger->debug( sprintf(' > EzGED session@%s CLOSED', $this->sessionid) );
+        
+        $this->sessionid = null;
+        $this->keepalive = true;
+        $this->cookie = null;
+
+        return $this;
     }
     
     

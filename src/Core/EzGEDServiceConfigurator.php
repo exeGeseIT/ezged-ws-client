@@ -38,6 +38,7 @@ class EzGEDServiceConfigurator
         $this->query = [];
         $this->responseFilter = null;
         $this->responseFormater = null;
+        $this->returnClass = null;
     }
 
 
@@ -138,10 +139,7 @@ class EzGEDServiceConfigurator
     public function getReturn(ResponseInterface $httpresponse): EzGEDResponseInterface
     {
         $className = $this->returnClass;
-        if( null === $className ) {
-            new EmptyResponse($httpresponse);
-        }
-        return new $className($httpresponse);
+        return null === $className ? new EmptyResponse($httpresponse) : new $className($httpresponse);
     }
 
     public function setReturnClass(string $returnClass): self
