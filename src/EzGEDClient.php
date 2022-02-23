@@ -6,6 +6,7 @@ use ExeGeseIT\EzGEDWsClient\Core\EzGED;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
 use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
 use ExeGeseIT\EzGEDWsClient\Exception\LogoutException;
 use Psr\Log\LoggerInterface;
@@ -72,7 +73,7 @@ class EzGEDClient
     private function getParams(array $params = []): array
     {
         return array_merge($params, [
-            'session' => $this->sessionid ?? '',
+            'sessionid' => $this->sessionid ?? '',
         ]);
     }
     
@@ -146,7 +147,7 @@ class EzGEDClient
         ];
 
         /** @var EzGEDResponseInterface $ezResponse */
-        $ezResponse = $this->ezGED->exec(EzGED::REQ_LOGOUT, $params);
+        $ezResponse = $this->ezGED->exec(EzGED::REQ_LOGOUT, $this->getParams($params), $this->getOptions());
         if ( !$ezResponse->isSucceed() ) {
             throw new LogoutException($ezResponse->getMessage(), $ezResponse->getMessage());
         }
@@ -162,7 +163,7 @@ class EzGEDClient
     
     
     /**
-     * Lister les vues de l'utilisateur
+     * List user views 
      * @return PerimeterResponse
      */
     public function getPerimeter(): PerimeterResponse
@@ -170,5 +171,45 @@ class EzGEDClient
         return $this->authent()->ezGED->exec(EzGED::REQ_GET_PERIMETER, $this->getParams(), $this->getOptions());
     }
     
+    /**
+      * Show results of a view
+      *
+      * the $filter parameter allows you to filter the search
+      * It must be of the form:
+      * [
+      *     'field' => Name of the database field to search on
+      *     'operator' => operator: '=' | '>=' | '<=' | 'like'
+      *     'value' => Value to search for
+      * ]
+      *
+      *
+      * @param int $idview view ID (QRY_ID)
+      * @param int|null $offset offset for paging the result
+      * @param int|null $limit number of result rows returned
+      * @param array|null $filter filters of the form ['field'=>, 'operator'=> 'value'=>]
+      * @return self
+      */
+    public function search(int $idview, ?int $offset = null, ?int $limit = null, ?array $filter = null): SearchResponse
+    {
+        $params = [
+            'qryid' => $idview,
+            'limitstart' => $offset,
+            'limitgridlines' => $limit,
+        ];
+
+        if ( !empty($filter) ) {
+            $isKeyOk = isset($filter['field'], $filter['operator'], $filter['value']);
+            $operator = isset($filter['operator']) ? strtolower($filter['operator']) : '-!!-';
+            $isOperatorOK = in_array($operator,['=', '>=', '<=', 'like']);
+
+            if ($isKeyOk && $isOperatorOK) {
+                $params['qryusrffqn'] = $filter['field'];
+                $params['qryusrop'] = $operator;
+                $params['qryusrval'] = $filter['value'];
+            }
+        }
+
+        return $this->authent()->ezGED->exec(EzGED::REQ_EXEC_REQUEST, $this->getParams($params), $this->getOptions());
+    }
     
 }

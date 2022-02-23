@@ -3,7 +3,7 @@
 namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
 
 /**
- * Description of EzRow
+ * Description of EzJob
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */

@@ -5,12 +5,13 @@ namespace ExeGeseIT\EzGEDWsClient\Core;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzGenericBag;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJob;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJobstatus;
-use ExeGeseIT\EzGEDWsClient\Core\Dto\EzRow;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServiceConfigurator;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\KeepaliveResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
+use ExeGeseIT\EzGEDWsClient\EzGEDHelper;
 
 /**
  * Description of Services
@@ -42,15 +43,6 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             self::REQ_UPLOAD => function(array $reponse){
                 $ezBag = (new EzGenericBag())->init( $reponse[0] );
                 return $ezBag;
-            },
-
-            self::REQ_EXEC_REQUEST => function(array $reponse){
-                $out = [];
-                foreach ($reponse as $stdClass) {
-                    $ezQuery = (new EzRow())->init( $stdClass );
-                    $out[ $ezQuery->getId() ] = $ezQuery;
-                }
-                return $out;
             },
 
             self::REQ_GET_RECORD_FILES => function(array $reponse){
@@ -157,14 +149,14 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setQuery([
                 'qryid' => '',
                 'limitstart' => null,
-                'limitgridlines' => null,
+                'limitgridlines' => EzGEDHelper::DEFAULT_SEARCH_LIMIT,
 
                 'qryusrffqn' => null,
                 'qryusrop' => null,
                 'qryusrval' => null,
             ])
-            ->setResponseFilter([])
-            ->setResponseFormater( $fns[self::REQ_EXEC_REQUEST] );
+            ->setReturnClass(SearchResponse::class)
+            ;
 
         // Voir la liste des fichiers (image) d'un enregistrement
         self::$services[ self::REQ_GET_RECORD_FILES ] = (new EzGEDServiceConfigurator())

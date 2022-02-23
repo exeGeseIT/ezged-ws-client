@@ -25,6 +25,12 @@ class EzGED extends EzGEDAbstract
     
     public function exec(string $serviceKey, array $queryParams = [], array $options = []): EzGEDResponseInterface
     {
+        // Manage "Token" authentification mode
+        if ( !isset($queryParams['token'], $queryParams['sessionid']) ) {
+            unset($queryParams['token']);
+            unset($queryParams['sessionid']);
+        }
+        
         $conf = $this->getServiceConfig($serviceKey);
         
         $response = $this->httpclient->request($conf->getMethod(), $conf->getEndpoint(), array_merge([
