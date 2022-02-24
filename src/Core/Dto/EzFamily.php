@@ -12,9 +12,7 @@ class EzFamily extends EzGenericBag
 
     public function __construct()
     {
-        parent::__construct();
-        
-        $this->pkField = 'QRYSET_ID';
+        parent::__construct($pkField = 'QRYSET_ID');
         
         $this->setProperties([
             'type', 

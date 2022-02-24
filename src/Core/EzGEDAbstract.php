@@ -10,6 +10,7 @@ use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\KeepaliveResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
 use ExeGeseIT\EzGEDWsClient\EzGEDHelper;
 
@@ -44,15 +45,31 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 $ezBag = (new EzGenericBag())->init( $reponse[0] );
                 return $ezBag;
             },
-
-            self::REQ_GET_RECORD_FILES => function(array $reponse){
+            
+            /*
+             * 
+            >>PerimeterResponse
+            self::REQ_GET_PERIMETER => function(array $reponse){
+                $r = $reponse[0]->rows;
                 $out = [];
-                foreach ($reponse as $stdClass) {
-                    $ezBag = (new EzGenericBag())->init( $stdClass );
-                    $out[ $ezBag->getRank() ] = $ezBag;
+                foreach ($r as $stdClass) {
+                    $ezFamily = (new EzFamily())->init( $stdClass );
+                    $out[ $ezFamily->getId() ] = $ezFamily;
                 }
                 return $out;
             },
+
+            >>SearchResponse
+             * self::REQ_EXEC_REQUEST => function(array $reponse){
+                $out = [];
+                foreach ($reponse as $stdClass) {
+                    $ezQuery = (new EzRow())->init( $stdClass );
+                    $out[ $ezQuery->getId() ] = $ezQuery;
+                }
+                return $out;
+            },
+             * 
+             */
 
             self::REQ_CREATE_RECORD => function(array $reponse){
                 $ezBag = (new EzGenericBag('RETID'))->init( $reponse[0] );
@@ -172,19 +189,8 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'limitstart' => null,
                 'limitgridlines' => null,
             ])
-            ->setResponseFilter([
-                'rank',
-                'rsid',
-                'table',
-                'fsfileid',
-                'ripefilearchive',
-                'datefilearchive',
-
-                'mime',
-                'namefileorigin',
-                'size',
-            ])
-            ->setResponseFormater( $fns[self::REQ_GET_RECORD_FILES] );
+            ->setReturnClass(RecordPageResponse::class)
+            ;
 
         // Créer un enregistrement
         self::$services[ self::REQ_CREATE_RECORD ] = (new EzGEDServiceConfigurator())

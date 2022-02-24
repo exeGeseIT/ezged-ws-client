@@ -6,6 +6,7 @@ use ExeGeseIT\EzGEDWsClient\Core\EzGED;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
 use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
 use ExeGeseIT\EzGEDWsClient\Exception\LogoutException;
@@ -187,7 +188,7 @@ class EzGEDClient
       * @param int|null $offset offset for paging the result
       * @param int|null $limit number of result rows returned
       * @param array|null $filter filters of the form ['field'=>, 'operator'=> 'value'=>]
-      * @return self
+      * @return SearchResponse
       */
     public function search(int $idview, ?int $offset = null, ?int $limit = null, ?array $filter = null): SearchResponse
     {
@@ -210,6 +211,28 @@ class EzGEDClient
         }
 
         return $this->authent()->ezGED->exec(EzGED::REQ_EXEC_REQUEST, $this->getParams($params), $this->getOptions());
+    }
+    
+    
+    /**
+      * Returns the list of pages (file) of a record (row)
+      *
+      * @param int $idrecord identifier (PK) of the record (ie. 'NOTEDEFRAIS_ID')
+      * @param string $recordTable record table name (ie. 'FEESNOTE')
+      * @param int|null $offset offset for paging the result
+      * @param int|null $limit number of result rows returned
+      * @return RecordDocument
+      */
+    public function getRecordPages(int $idrecord, string $recordTable, ?int $offset = null, ?int $limit = null): RecordPageResponse
+    {
+        $params = [
+            'docpakrsid' => $idrecord,
+            'docpaktbl' => $recordTable,
+            'limitstart' => $offset,
+            'limitgridlines' => $limit,
+        ];
+
+        return $this->authent()->ezGED->exec(EzGED::REQ_GET_RECORD_FILES, $this->getParams($params), $this->getOptions());
     }
     
 }
