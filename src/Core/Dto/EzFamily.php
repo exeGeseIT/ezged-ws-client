@@ -43,20 +43,20 @@ class EzFamily extends EzGenericBag
      *   ]
      * }
      *
-     * @param iterable $data
+     * @param iterable $rawData
      * @return self
      */
-    public function init(iterable $data): self
+    public function init(iterable $rawData): self
     {
-        if ( $this->validateData($data,['QRYSET_ID','QRYSET_DESC','rows']) ) {
+        if ( $this->validateData($rawData,['type','QRYSET_ID','QRYSET_DESC','rows']) ) {
             
             $this
-                ->setProperty('type', 'family')
-                ->setProperty('QRYSET_ID', self::extract('QRYSET_ID',$data))
-                ->setProperty('QRYSET_DESC', self::extract('QRYSET_DESC',$data))
+                ->setProperty('type', self::extract('type',$rawData))
+                ->setProperty('QRYSET_ID', self::extract('QRYSET_ID',$rawData))
+                ->setProperty('QRYSET_DESC', self::extract('QRYSET_DESC',$rawData))
                 ;
 
-            foreach (self::extract('rows',$data) as $queryObj) {
+            foreach (self::extract('rows',$rawData) as $queryObj) {
                 $this->elements[] = (new EzQuery())->init($queryObj);
             }
         }

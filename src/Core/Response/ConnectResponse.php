@@ -3,6 +3,7 @@
 namespace ExeGeseIT\EzGEDWsClient\Core\Response;
 
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseAbstract;
+use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBag;
 
 /**
  * Description of ConnectResponse
@@ -18,14 +19,17 @@ class ConnectResponse extends EzGEDResponseAbstract
         return $this->sessionid;
     }
     
-    protected function initializeData(array $data): void
+    protected function initialize(array $data): void
     {
         $rows = array_key_exists('rows', $data) ? $data['rows'] : null;
         if ( $rows ) {
             $this->sessionid = $rows['sessionid'];
             unset($rows['sessionid']);
+            
+            if ( !empty($rows) ) {
+                $this->content = new ParameterBag($rows);
+            }
         }
-        $this->data = $rows ?? [];
     }
 
 }

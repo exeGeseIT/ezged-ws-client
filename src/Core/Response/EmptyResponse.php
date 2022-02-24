@@ -11,6 +11,6 @@ use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseAbstract;
  */
 class EmptyResponse extends EzGEDResponseAbstract
 {
-    protected function initializeData(array $data): void
+    protected function initialize(array $data): void
     {}
 }

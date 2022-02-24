@@ -71,9 +71,9 @@ class EzJobstatus extends EzJob implements EzJobstatusInterface
      */
     public function __construct()
     {
-        parent::__construct();
         $this->setProperties( ['JOBQUEUE_ACTIVE', 'JOBQUEUE_STEP'] )
              ->setProperty('JOBQUEUE_STATUS', self::JOBSTATUS_PENDING);
+        parent::__construct();
     }
 
     /**
@@ -81,7 +81,7 @@ class EzJobstatus extends EzJob implements EzJobstatusInterface
      */
     public function getStatus(): ?string
     {
-        switch ( $this->__get('JOBQUEUE_STATUS') ) {
+        switch ( $this->getProperty('JOBQUEUE_STATUS') ) {
             case self::JOBSTATUS_PENDING:
                 return self::STATUS_PENDING;
             case self::JOBSTATUS_QUEUED:
@@ -121,7 +121,7 @@ class EzJobstatus extends EzJob implements EzJobstatusInterface
     public function onFinalState(): bool
     {
         $status = $this->getStatus();
-        return null !== $status && !in_array($status,[self::STATUS_PENDING, self::STATUS_QUEUED]);
+        return isset($status) && !in_array($status,[self::STATUS_PENDING, self::STATUS_QUEUED]);
     }
 
 }

@@ -30,7 +30,6 @@ class EzRow extends EzGenericBag
      */
     public function init(iterable $data): self
     {
-        $this->validateData($data);
         foreach ($data as $property => $value) {
             if ('rows' !== $property) {
                 $this->setProperty($property, $value);
@@ -40,7 +39,7 @@ class EzRow extends EzGenericBag
             $matches = [];
             if (null === $this->getPkField() && preg_match('/(^.*)_ID$/i',$property,$matches)) {
                 $this->pkField = $matches[0];
-                $this->table = $matches[1];
+                $this->tablename = $matches[1];
             }
         }
         return $this;

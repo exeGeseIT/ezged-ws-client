@@ -2,6 +2,7 @@
 
 namespace ExeGeseIT\EzGEDWsClient\Core;
 
+use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBagInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
@@ -18,11 +19,16 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
 {
     private ResponseInterface $httpresponse;
-    protected $data = [];
+    protected ?ParameterBagInterface $content = null;
     
     protected int $error = 0;
     protected ?string $message = '';
     protected int $count = 0;
+    
+    
+    abstract protected function initialize(array $payload): void;
+    
+    
 
     /**
      * Gets the HTTP headers of the http response.
@@ -99,9 +105,9 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
     }
     
     
-    public function getData()
+    public function getContent(): ?ParameterBagInterface
     {
-        return $this->data;
+        return $this->content;
     }
     
     public function __construct(ResponseInterface $httpresponse)
@@ -129,7 +135,7 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
             unset($payload['errorcode']);
             unset($payload['errormsg']);
             
-            $this->initializeData($payload);
+            $this->initialize($payload);
             
         } catch (DecodingExceptionInterface $exc) {
             $this->error = 1;
@@ -141,5 +147,4 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
 
     }
     
-    abstract protected function initializeData(array $payload): void;
 }

@@ -2,6 +2,9 @@
 
 namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
 
+use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\Exception\ParameterNotFoundException;
+use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBag;
+
 
 /**
  * Description of ezBag
@@ -11,53 +14,67 @@ namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
 abstract class EzBagAbstract implements EzBagInterface
 {
 
-    protected array $_properties = [];
-    protected array $_callables = [];
+    protected ParameterBag $propertiesBag;
     protected array $elements = [];
 
+    
+    
     /**
-     * @var object|array
+     * Function d'initialisation
+     * @param iterable $rawData
+     * @return EzBagInterface
      */
-    protected $data;
-
-
+    abstract function init(iterable $rawData): EzBagInterface;
+    
+    
+    
     public function __construct()
-    {}
+    {
+        $this->propertiesBag = new ParameterBag();
+    }
 
     public function setProperties(iterable $properties): self
     {
-        foreach ($properties as $key) {
-            $this->_properties[ strtolower($key) ] = null;
+        foreach ($properties as $propertyName) {
+            $this->setProperty($propertyName, null);
         }
         return $this;
     }
-
-    public function addMethod(string $methodName, callable $fn): self
+    
+    /**
+     * Gets property value.
+     *
+     * @return array|bool|string|int|float|null
+     *
+     * @throws ParameterNotFoundException if the parameter is not defined
+     */
+    public function getProperty(string $name)
     {
-        $this->_callables[ $methodName ] = $fn;
+        return $this->propertiesBag->get( strtolower($name) );
+    }
+        
+    /**
+     * 
+     * @param string $name
+     * @param type $value
+     * @return self
+     */
+    public function setProperty(string $name, $value): self
+    {
+        $this->propertiesBag->add(strtolower($name), $value);
         return $this;
     }
 
-    public function __get(string $name)
+    /**
+     * 
+     * @return array
+     */
+    public function getElements(): array
     {
-        $_name = strtolower($name);
-        if (array_key_exists($_name,$this->_properties)) {
-            return $this->_properties[$_name];
-        }
+        return $this->elements;
     }
-
-    public function __call(string $methodName, $args)
-    {
-        if (array_key_exists($methodName,$this->_callables)) {
-            return call_user_func_array($this->_callables[$methodName],$args);
-        } elseif (substr($methodName,0,3) === 'get') {
-            /*$_name = strtolower(substr($methodName,3));
-            if (array_key_exists($_name,$this->_properties)) {
-                return $this->_properties[$_name];
-            }*/
-            return $this->__get( substr($methodName,3) );
-        }
-    }
+    
+    
     
     protected static function isSet(string $prop, $item): bool
     {
@@ -87,34 +104,7 @@ abstract class EzBagAbstract implements EzBagInterface
         foreach ($requiredProperties as $prop) {
             $isOK = $isOK && self::isSet($prop, $data);
         }
-        $this->data = $isOK ? $data : null;
         return $isOK;
     }
-
-    protected function setProperty(string $property, $value): self
-    {
-        $this->_properties[ strtolower($property) ] = $value;
-        return $this;
-    }
-
-    /**
-     * 
-     * @return array
-     */
-    public function getElements(): array
-    {
-        return $this->elements;
-    }
-
-    public function getData()
-    {
-        return $this->data;
-    }
-
     
-    /**
-     * Function d'initialisation
-     * @return EzBagInterface
-     */
-    abstract function init(iterable $data): EzBagInterface;
 }

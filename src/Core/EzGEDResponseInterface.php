@@ -2,6 +2,7 @@
 
 namespace ExeGeseIT\EzGEDWsClient\Core;
 
+use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBagInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
@@ -37,7 +38,7 @@ interface EzGEDResponseInterface
     /**
      * 
      */
-    public function getData();
+    public function getContent(): ?ParameterBagInterface;
 
 
 }

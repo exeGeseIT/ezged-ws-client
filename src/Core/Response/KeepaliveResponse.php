@@ -42,7 +42,7 @@ class KeepaliveResponse extends EzGEDResponseAbstract
         return $this->countworkflow;
     }
 
-    protected function initializeData(array $data): void
+    protected function initialize(array $data): void
     {
         $rows = array_key_exists('rows', $data) ? $data['rows'][0] : null;
         if ( $rows ) {

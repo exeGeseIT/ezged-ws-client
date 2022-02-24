@@ -4,6 +4,7 @@ namespace ExeGeseIT\EzGEDWsClient\Core\Response;
 
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzRow;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseAbstract;
+use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBag;
 
 /**
  * Description of PerimeterResponse
@@ -12,7 +13,7 @@ use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseAbstract;
  */
 class SearchResponse extends EzGEDResponseAbstract
 {
-    protected function initializeData(array $data): void
+    protected function initialize(array $data): void
     {
         $rows = array_key_exists('rows', $data) ? $data['rows'] : null;
         if ( $rows ) {
@@ -21,7 +22,7 @@ class SearchResponse extends EzGEDResponseAbstract
                 $ezRow = (new EzRow())->init($item);
                 $out[ $ezRow->getId() ] = $ezRow;
             }
-            $this->data = $out;
+            $this->content = new ParameterBag($out);
         }
     }
 }

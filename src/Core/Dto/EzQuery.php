@@ -12,10 +12,7 @@ class EzQuery extends EzGenericBag
 
     public function __construct()
     {
-        parent::__construct();
-
         $this->pkField = 'QRY_ID';
-        
         $this->setProperties([
             'type',
             'QRY_DESC',
@@ -25,6 +22,7 @@ class EzQuery extends EzGenericBag
             'QRY_PUBCNTCOR',
             'QRY_TREE',
         ]);
+        parent::__construct();
     }
 
 

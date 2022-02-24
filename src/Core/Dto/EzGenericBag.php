@@ -9,7 +9,7 @@ namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
 class EzGenericBag extends EzBagAbstract
 {
     protected ?string $pkField = null;
-    protected ?string $table = null;
+    protected ?string $tablename = null;
 
 
     /**
@@ -20,7 +20,7 @@ class EzGenericBag extends EzBagAbstract
     public function __construct(?string $pkField = null, ?string $table = null)
     {
         $this->pkField = $pkField;
-        $this->table = $table;
+        $this->tablename = $table;
         parent::__construct();
     }
 
@@ -32,7 +32,7 @@ class EzGenericBag extends EzBagAbstract
 
     public function getTable(): ?string
     {
-        return $this->table;
+        return $this->tablename;
     }
 
     /**
@@ -42,16 +42,17 @@ class EzGenericBag extends EzBagAbstract
     public function getId(): ?int
     {
         $pkfield = strtolower($this->getPkField() ?? '');
-        return array_key_exists($pkfield, $this->_properties) ? $this->_properties[ $pkfield ] : null;
+        return $this->propertiesBag->has($pkfield) ? $this->getProperty($pkfield) : null;
     }
 
     /**
-     * @param iterable $data
+     * @param iterable $rawData
+     * @return self
      */
-    public function init(iterable $data): self
+    public function init(iterable $rawData): self
     {
-        if ( $this->validateData($data) ) {
-            foreach ($data as $property => $value) {
+        if ( $this->validateData($rawData) ) {
+            foreach ($rawData as $property => $value) {
                 if ('rows' === $property) {
                     foreach ($value as $element) {
                         $this->elements[] = (new EzGenericBag())->init($element);
