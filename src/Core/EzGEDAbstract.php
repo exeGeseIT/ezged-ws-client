@@ -131,7 +131,6 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'fsfileripe' => 'n0p',
 
                 'mode' => null,
-                'download' => null,
                 'mobile' => null, //mobile =1 force 'download'
             ]);
 

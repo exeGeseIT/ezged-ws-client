@@ -9,8 +9,12 @@ use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
 use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
+use ExeGeseIT\EzGEDWsClient\Exception\EzGEDClientException;
 use ExeGeseIT\EzGEDWsClient\Exception\LogoutException;
 use Psr\Log\LoggerInterface;
+use SplFileObject;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -23,6 +27,9 @@ class EzGEDClient
 {
     private string $apiUser;
     private string $apiPwd;
+    private string $ezgedUrl;
+    
+    private Filesystem $filesystem;
     
     private bool $keepalive = false;
     private ?string $sessionid = null;
@@ -54,12 +61,15 @@ class EzGEDClient
      * @param HttpClientInterface|null $httpclient
      * @param string $apiUser
      * @param string $apiPwd
-     * @param string|null $ezgedUrl
+     * @param string $ezgedUrl
      */
-    public function __construct(?HttpClientInterface $httpclient, string $apiUser, string $apiPwd, ?string $ezgedUrl = null)
+    public function __construct(?HttpClientInterface $httpclient, string $apiUser, string $apiPwd, string $ezgedUrl)
     {
         $this->apiUser = $apiUser;
         $this->apiPwd = md5($apiPwd);
+        $this->ezgedUrl = $ezgedUrl;
+        
+        $this->filesystem = new Filesystem();
         
         $finalHttpclient = $httpclient ?? HttpClient::create([
             'verify_peer' => false,
@@ -68,7 +78,7 @@ class EzGEDClient
                 'format' => 'json',
             ],
         ]);
-        $this->ezGED = new EzGED($finalHttpclient);
+        $this->ezGED = new EzGED($finalHttpclient, $ezgedUrl);
     }
     
     private function getParams(array $params = []): array
@@ -233,6 +243,58 @@ class EzGEDClient
         ];
 
         return $this->authent()->ezGED->exec(EzGED::REQ_GET_RECORD_FILES, $this->getParams($params), $this->getOptions());
+    }
+    
+    
+    /**
+     * 
+     * @param int $idfile
+     * @param string $fileHash
+     * @param string $saveFilepath
+     * @param string|null $saveFilename
+     * @return array ['file' => saved_file_name, 'size' => size(octet)]
+     * 
+     * @throws EzGEDClientException
+     */
+    public function downloadFile(int $idfile, string $fileHash, string $saveFilepath, ?string $saveFilename = null): array
+    {
+        $params = [
+            'fsfileid' => $idfile,
+            'fsfileripe' => $fileHash,
+            'mobile' => 1,
+        ];
+
+        $response = $this->authent()->ezGED->getHttpresponse(EzGED::REQ_DOWNLOAD_FILE, $this->getParams($params), $this->getOptions());
+        
+        if ( 200 !== $response->getStatusCode() ) {
+            throw new EzGEDClientException('Request failed with status code: '.$response->getStatusCode(), $response->getStatusCode());
+        }
+        
+        if ( 'application/force-download' !== $response->getInfo('content_type') ) {
+            throw new EzGEDClientException('Unable to retrieve the requested archive. The specified parameters are invalid or incomplete');
+        }
+        
+        if ( empty($saveFilename) ) {
+            $content_disposition_header = implode(' ',$response->getHeaders()['content-disposition']);
+            $saveFilename = preg_replace('/.*filename="(.+)"/', '$1', $content_disposition_header);
+        }
+        
+        $output = Path::canonicalize($saveFilepath . '/' . $saveFilename);
+        $path = Path::getDirectory($output);
+        $this->filesystem->mkdir($path);
+        
+        $size = 0;
+        $file = new SplFileObject($output, 'w');
+        foreach ($this->ezGED->stream($response) as $chunk) {
+            $size += $file->fwrite($chunk->getContent());
+        }
+        
+        return [
+            'path' => $path, 
+            'filename' => $file->getFilename(), 
+            'size' => $size,
+        ];
+        
     }
     
 }
