@@ -13,7 +13,8 @@
         "php": ">=7.1",
         "psr/log": "^1.1",
         "symfony/filesystem": "^5.4",
-        "symfony/http-client": "^5.4"
+        "symfony/http-client": "^5.4",
+        "symfony/mime": "^5.4"
     },
     "config": {
         "sort-packages": true,

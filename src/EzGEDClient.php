@@ -8,6 +8,7 @@ use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\UploadResponse;
 use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
 use ExeGeseIT\EzGEDWsClient\Exception\EzGEDClientException;
 use ExeGeseIT\EzGEDWsClient\Exception\LogoutException;
@@ -16,6 +17,8 @@ use SplFileObject;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -90,13 +93,16 @@ class EzGEDClient
         ]);
     }
     
-    private function getOptions(): array
+    private function getOptions(array $options = []): array
     {
-        return [
-            'headers' => [
-                'Cookie' => implode(',', $this->cookie ?? []),
-            ],
-        ];
+        if ( array_key_exists('headers', $options) && is_array($options['headers']) ) {
+            $options[ 'headers' ] = array_merge($options['headers'], ['Cookie' => implode(',', $this->cookie ?? [])]);
+        } else {
+            $options[ 'headers' ] = [
+                    'Cookie' => implode(',', $this->cookie ?? []),
+            ];
+        }
+        return $options;
     }
     
     /**
@@ -298,5 +304,62 @@ class EzGEDClient
         ];
         
     }
+    
+    
+    /**
+     * Upload a file
+     *
+     * Optional parameters:
+     *    - $name: =>    The name that will be indexed for the file (GED)
+     *                   default: basename($fullFilename)
+     *    - $waitdir: => The name of the COLD waiting directory in which the files will be written
+     *                   The directory must be in the ocr/wait tree (e.g: C:\nchp\var\spool\ezged\instance\ocr\wait)
+     *    - $token: =>   This parameter MUST BE LEFT at its default value unless EzGED changes the value defined for <upload_token>
+     *                   default: EzGEDHelper::DEFAULT_UPLOAD_TOKEN
+     *
+     * @param string $fullFilename Full file name (e.g: c:/test/fact-5678.pdf)
+     * @param string|null $name
+     * @param string|null $waitdir
+     * @param string|null $token
+     * @return UploadResponse
+     *
+     * @throws EzGEDClientException
+     */
+    public function upload(string $fullFilename, ?string $name = null, ?string $waitdir = null, ?string $token = null): UploadResponse
+    {
+
+        $filename = Path::canonicalize($fullFilename);
+        $params = [
+            'token' => $token ?? EzGEDHelper::DEFAULT_UPLOAD_TOKEN, 
+            'waitdir' => $waitdir,
+            'mode' => empty($waitdir) ? null : 'cold',
+            
+            'name' => $name ?? basename($filename), 
+        ];
+        
+        if ( !is_readable($filename) ) {
+            throw new EzGEDClientException( sprintf('Unable to read %s . Check existence and  permission', $filename) );
+        }
+        
+        $formData = new FormDataPart([
+            'file' => DataPart::fromPath($filename),
+        ]);
+        
+        $headers = [];
+        foreach ($formData->getPreparedHeaders()->toArray() as $string) {
+            $matches = [];
+            if ( preg_match('/^(?P<header>.+):(?P<value>.+)$/', $string, $matches) ) {
+                $headers[ $matches['header'] ] = trim($matches['value']);
+            }
+        }
+        
+        $options = [
+            'headers' => $headers,
+            'body' => $formData->bodyToIterable(),
+        ];
+
+        return $this->authent()->ezGED->exec(EzGED::REQ_UPLOAD, $this->getParams($params), $this->getOptions($options));
+    }
+    
     
 }

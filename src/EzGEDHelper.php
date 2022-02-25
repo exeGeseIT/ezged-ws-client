@@ -10,6 +10,7 @@ namespace ExeGeseIT\EzGEDWsClient;
 class EzGEDHelper
 {
     const DEFAULT_SEARCH_LIMIT = 20;
+    const DEFAULT_UPLOAD_TOKEN = 'c3e335143464469a1ca542c21147f913';
     
     
     private static function setSearchFilter(string $field, string $value, string $operator): array

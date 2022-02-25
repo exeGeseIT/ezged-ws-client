@@ -12,6 +12,7 @@ use ExeGeseIT\EzGEDWsClient\Core\Response\KeepaliveResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\UploadResponse;
 use ExeGeseIT\EzGEDWsClient\EzGEDHelper;
 
 /**
@@ -41,11 +42,6 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
         
         $fns = [
 
-            self::REQ_UPLOAD => function(array $reponse){
-                $ezBag = (new EzGenericBag())->init( $reponse[0] );
-                return $ezBag;
-            },
-            
             /*
              * 
             >>PerimeterResponse
@@ -132,22 +128,24 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
 
                 'mode' => null,
                 'mobile' => null, //mobile =1 force 'download'
-            ]);
+            ])
+            ;
 
         // Upload d'un Fichier
         self::$services[ self::REQ_UPLOAD ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('pupload.php')
             ->setMethod('POST')
             ->setQuery([
+                'token' => null, 
+                'sessionid' => null,
+                
                 'mode' => 'file',
-
-                'name' => null,
                 'waitdir' => null,
+                
+                'name' => null,
             ])
-            ->setResponseFilter([
-                'filePath'
-            ])
-            ->setResponseFormater($fns[self::REQ_UPLOAD]);
+            ->setReturnClass(UploadResponse::class)
+            ;
 
         // Lister les vues de l'utilisateur: query/gettreearchive
         self::$services[ self::REQ_GET_PERIMETER ] = (new EzGEDServiceConfigurator())
@@ -203,7 +201,6 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
 
                 'qryid' => null,
             ])
-            ->setResponseFilter([])
             ->setResponseFormater( $fns[self::REQ_CREATE_RECORD] );
 
         // Mettre à jour un enregistrement
@@ -218,7 +215,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'fields' => '',
                 'values' => '',
             ])
-            ->setResponseFilter([]);
+            ;
 
         /**
          * Ajouter un fichier (image) à jour un enregistrement
@@ -259,7 +256,6 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setQuery([
                 'jobqueueid' => 0,
             ])
-            ->setResponseFilter([])
             ->setResponseFormater( $fns[self::REQ_GET_JOB_STATUS] );
 
     }
