@@ -13,17 +13,17 @@ use Symfony\Contracts\HttpClient\ResponseStreamInterface;
 class EzGED extends EzGEDAbstract
 {
     private HttpClientInterface $httpclient;
-    private string $ezgedUrl;
+    private string $apiUrl;
     
     /**
      * 
      * @param HttpClientInterface $httpclient
-     * @param string $ezgedUrl
+     * @param string $apiUrl
      */
-    public function __construct(HttpClientInterface $httpclient, string $ezgedUrl)
+    public function __construct(HttpClientInterface $httpclient, string $apiUrl)
     {
         $this->httpclient = $httpclient;
-        $this->ezgedUrl = $ezgedUrl;
+        $this->apiUrl = $apiUrl;
         parent::__construct();
     }
     
@@ -48,7 +48,7 @@ class EzGED extends EzGEDAbstract
     {
         $response = $this->getHttpresponse($serviceKey, $queryParams, $options);
         $conf = $this->getServiceConfig($serviceKey);
-        return $conf->getReturn($response);
+        return $conf->getReturn($response, $this->apiUrl);
     }
     
     

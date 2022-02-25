@@ -133,10 +133,10 @@ class EzGEDServiceConfigurator
      * @param ResponseInterface $httpresponse
      * @return EzGEDResponseInterface
      */
-    public function getReturn(ResponseInterface $httpresponse): EzGEDResponseInterface
+    public function getReturn(ResponseInterface $httpresponse, ...$callbackParams): EzGEDResponseInterface
     {
         $className = $this->returnClass;
-        return null === $className ? new EmptyResponse($httpresponse) : new $className($httpresponse);
+        return null === $className ? new EmptyResponse($httpresponse) : new $className($httpresponse, ...$callbackParams);
     }
 
     public function setReturnClass(string $returnClass): self

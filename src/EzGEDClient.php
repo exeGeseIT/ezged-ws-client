@@ -71,14 +71,16 @@ class EzGEDClient
         
         $this->filesystem = new Filesystem();
         
+        $apiUrl = Path::canonicalize( ($ezgedUrl ?? '/ezged') . '/data/' );
+        
         $finalHttpclient = $httpclient ?? HttpClient::create([
             'verify_peer' => false,
-            'base_uri' => rtrim($ezgedUrl ?? '/ezged','/') . '/data/',
+            'base_uri' => $apiUrl,
             'query' => [
                 'format' => 'json',
             ],
         ]);
-        $this->ezGED = new EzGED($finalHttpclient, $ezgedUrl);
+        $this->ezGED = new EzGED($finalHttpclient, $apiUrl);
     }
     
     private function getParams(array $params = []): array
