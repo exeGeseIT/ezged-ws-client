@@ -1,6 +1,6 @@
 <?php
 
-return (object) [
+return [
   'api' => 'https://localhost.fr/ezged3',
   'user' => 'wsuser',
   'pwd' => 'YourPassW0$l*',

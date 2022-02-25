@@ -1,7 +1,6 @@
 composer.phar
 /vendor/
+/test/download/
 /test/config.php
 /test/*.log
-/test/Netbean-shortcuts.pdf
-/test/download.jpg
 /nbproject/private/
