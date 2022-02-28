@@ -128,10 +128,11 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
             */
             $payload = $httpresponse->toArray($throw=true);
             
-            $this->count = isset($payload['count']) ? $payload['count'] : 0;
+            $this->count = isset($payload['count']) ? (int)$payload['count'] : 0;
             $this->error = isset($payload['errorcode']) ? $payload['errorcode'] : 0;
             $this->message = isset($payload['errormsg']) ? $payload['errormsg'] : '';
             
+            unset($payload['count']);
             unset($payload['errorcode']);
             unset($payload['errormsg']);
             

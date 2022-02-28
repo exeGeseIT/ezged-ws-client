@@ -31,9 +31,10 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class EzGEDClient
 {
-    private string $apiUser;
-    private string $apiPwd;
-    private string $ezgedUrl;
+    private string $apiUrl;
+    private string $apiUser = '';
+    private string $apiPwd = '';
+    private bool $sslVerifyPeer = true;
     
     private Filesystem $filesystem;
     
@@ -59,39 +60,66 @@ class EzGEDClient
     {
         return $this->sessionid && $this->keepalive;
     }
-
-        
     
     /**
-     * 
-     * @param HttpClientInterface|null $httpclient
      * @param string $apiUser
-     * @param string $apiPwd
-     * @param string $ezgedUrl
+     * @return self
      */
-    public function __construct(?HttpClientInterface $httpclient, string $apiUser, string $apiPwd, string $ezgedUrl)
+    public function setApiUser(string $apiUser): self
     {
+        $this->sessionid = ($apiUser === $this->apiUser) ?: null;
         $this->apiUser = $apiUser;
+        return $this;
+    }
+
+    /**
+     * @param string $apiPwd
+     * @return self
+     */
+    public function setApiPwd(string $apiPwd): self
+    {
+        $this->sessionid = (md5($apiPwd) === $this->apiPwd) ?: null;
         $this->apiPwd = md5($apiPwd);
-        $this->ezgedUrl = $ezgedUrl;
+        $this->sessionid = null;
+        return $this;
+    }
+    
+    /**
+     * @param bool $sslVerifyPeer (default: true)
+     * @return self
+     */
+    public function setSslVerifyPeer(bool $sslVerifyPeer = true): self
+    {
+        $this->sslVerifyPeer = $sslVerifyPeer;
+        return $this;
+    }
+
+    
+            
+    
+    /**
+     * @param string $ezgedUrl
+     * @param HttpClientInterface|null $httpclient
+     * @param string|null $apiUser
+     * @param string|null $apiPwd
+     * @param bool|null $sslVerifyPeer (default: true)
+     */
+    public function __construct(string $ezgedUrl, ?HttpClientInterface $httpclient = null, ?string $apiUser = null, ?string $apiPwd = null, ?bool $sslVerifyPeer = true)
+    {
+        $this->setApiUser($apiUser ?? \time());
+        $this->setApiPwd($apiPwd ?? '');
+        $this->apiUrl = Path::canonicalize( ($ezgedUrl ?? '/ezged')) . '/data/';
+        $this->setSslVerifyPeer($sslVerifyPeer ?? true);
         
         $this->filesystem = new Filesystem();
         
-        $apiUrl = Path::canonicalize( ($ezgedUrl ?? '/ezged') . '/data/' );
-        
-        $finalHttpclient = $httpclient ?? HttpClient::create([
-            'verify_peer' => false,
-            'base_uri' => $apiUrl,
-            'query' => [
-                'format' => 'json',
-            ],
-        ]);
-        $this->ezGED = new EzGED($finalHttpclient, $apiUrl);
+        $this->ezGED = new EzGED($httpclient ?? HttpClient::create(), $this->apiUrl);
     }
     
     private function getParams(array $params = []): array
     {
         return array_merge($params, [
+            'format' => 'json',
             'sessionid' => $this->sessionid ?? '',
         ]);
     }
@@ -105,7 +133,11 @@ class EzGEDClient
                     'Cookie' => implode(',', $this->cookie ?? []),
             ];
         }
-        return $options;
+        
+        return array_merge($options, [
+            'verify_peer' => $this->sslVerifyPeer,
+            'base_uri' => $this->apiUrl,
+        ]);
     }
     
     /**
@@ -135,19 +167,19 @@ class EzGEDClient
             'login' => $this->apiUser,
             'pwd' => $this->apiPwd,
         ];
-
+        
         /** @var ConnectResponse $ezResponse */
-        $ezResponse = $this->ezGED->exec(EzGED::REQ_AUTH, $params);
-
+        $ezResponse = $this->ezGED->exec(EzGED::REQ_AUTH, $params, $this->getOptions());
+        
         if ( !$ezResponse->isSucceed() ) {
-            throw new AuthenticationException($ezResponse->getMessage(), $ezResponse->getMessage());
+            throw new AuthenticationException($ezResponse->getMessage(), -1);
         }
         
         $this->sessionid = $ezResponse->getSessionid();
         $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
 
         if ( $withKeepalive ) {
-            if ( $this->ezGED->exec(EzGED::REQ_AUTH_KEEPALIVE, $this->getParams(), $this->getOptions())->isSucceed() ) {
+            if ( $this->ezGED->exec(EzGED::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed() ) {
                 $this->keepalive = true;
             }
             $this->logger && $this->logger->debug( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->sessionid, ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));

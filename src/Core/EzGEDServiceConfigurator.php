@@ -18,26 +18,12 @@ class EzGEDServiceConfigurator
     private $query;
     private $returnClass;
 
-    /**
-     * 
-     * @var array|null
-     */
-    private $responseFilter;
-
-    /**
-     *
-     * @var callable|null
-     */
-    private $responseFormater;
-
     public function __construct()
     {
         $this->servicename = null;
         $this->endpoint = '';
         $this->method = null;
         $this->query = [];
-        $this->responseFilter = null;
-        $this->responseFormater = null;
         $this->returnClass = null;
     }
 
@@ -107,28 +93,6 @@ class EzGEDServiceConfigurator
         return $this;
     }
 
-    public function getResponseFilter(): ?iterable
-    {
-        return $this->responseFilter;
-    }
-    
-    public function setResponseFilter(iterable $filter): self
-    {
-        $this->responseFilter = $filter;
-        return $this;
-    }
-
-    public function getResponseFormater(): ?callable
-    {
-        return $this->responseFormater;
-    }
-    
-    public function setResponseFormater(callable $fn): self
-    {
-        $this->responseFormater = $fn;
-        return $this;
-    }
-    
     /**
      * @param ResponseInterface $httpresponse
      * @return EzGEDResponseInterface
@@ -144,7 +108,5 @@ class EzGEDServiceConfigurator
         $this->returnClass = $returnClass;
         return $this;
     }
-
-
-
+    
 }
