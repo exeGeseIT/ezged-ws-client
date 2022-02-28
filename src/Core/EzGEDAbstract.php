@@ -2,13 +2,13 @@
 
 namespace ExeGeseIT\EzGEDWsClient\Core;
 
-use ExeGeseIT\EzGEDWsClient\Core\Dto\EzGenericBag;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJob;
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJobstatus;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServiceConfigurator;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\CreateRecordResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\EmptyResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\KeepaliveResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
@@ -211,22 +211,23 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setMethod('POST')
             ->setQuery([
                 'tfqn' => '',
-                'field_ID' => 0,
+                'field_ID' => '',
                 'value_ID' => 0,
                 'fields' => '',
                 'values' => '',
             ])
+            ->setReturnClass(EmptyResponse::class)
             ;
 
         /**
-         * Ajouter un fichier (image) à jour un enregistrement
+         * Ajouter un fichier (image) à un enregistrement
          *
          * paramètres :
          *  - tfqn : Le nom de la table.
          *  - rsid : L'ID de la fiche (ici 118).
          *  - file : Le chemin, sur le serveur, du fichier.
-         *  - start : -1
          *  - ocr : 1 pour garder le format d'origine, 0 pour archiver seulement le fichier converti (selon le format).
+         *  - start : -1
          */
         self::$services[ self::REQ_ADD_RECORD_FILE ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
