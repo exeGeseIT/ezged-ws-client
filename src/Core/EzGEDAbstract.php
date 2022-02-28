@@ -8,6 +8,7 @@ use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJobstatus;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServiceConfigurator;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\CreateRecordResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\KeepaliveResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
@@ -64,13 +65,14 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 }
                 return $out;
             },
-             * 
-             */
-
+            
+            >> CreateRecordResponse
             self::REQ_CREATE_RECORD => function(array $reponse){
                 $ezBag = (new EzGenericBag('RETID'))->init( $reponse[0] );
                 return $ezBag;
             },
+             * 
+             */
 
             self::REQ_ADD_RECORD_FILE => function(array $reponse){
                 $ezJob = (new EzJob())->init( $reponse[0] );
@@ -198,10 +200,9 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'tfqn' => '',
                 'fields' => '',
                 'values' => '',
-
-                'qryid' => null,
             ])
-            ->setResponseFormater( $fns[self::REQ_CREATE_RECORD] );
+            ->setReturnClass(CreateRecordResponse::class)
+            ;
 
         // Mettre à jour un enregistrement
         self::$services[ self::REQ_UPDATE_RECORD ] = (new EzGEDServiceConfigurator())

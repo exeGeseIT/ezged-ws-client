@@ -5,6 +5,7 @@ namespace ExeGeseIT\EzGEDWsClient;
 use ExeGeseIT\EzGEDWsClient\Core\EzGED;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\CreateRecordResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
@@ -303,6 +304,31 @@ class EzGEDClient
             'size' => $size,
         ];
         
+    }
+    
+    
+    
+    
+    /* ************************ */
+    /* CREATE/UPDATE OPERATIONS */
+    /* ************************ */
+    
+    /**
+     * Create a new Record
+     *
+     * @param string $recordTable
+     * @param array $fields
+     * @return self
+     */
+    public function createRecord(string $recordTable, array $fields): CreateRecordResponse
+    {
+        $params = [
+            'tfqn' => $recordTable,
+            'fields' => \json_encode(array_keys($fields)),
+            'values' => \json_encode(array_values($fields)),
+        ];
+
+        return $this->authent()->ezGED->getHttpresponse(EzGED::REQ_CREATE_RECORD, $this->getParams($params), $this->getOptions());
     }
     
     
