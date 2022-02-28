@@ -1,8 +1,8 @@
 #ezged-ws-client
 =======================
 
-**ezged-ws-client** is a PHP wrapper for [ezGED's](https://www.ezdev.fr/) web services.
-It provide a client relying on [symfony/http-client](https://github.com/symfony/http-client) component for the HTTP request layer.
+**ezged-ws-client** is a simple PHP client for [ezGED's](https://www.ezdev.fr/) web services.
+It relies on [symfony/http-client](https://github.com/symfony/http-client) component for the HTTP request layer.
 
 
 ## Installation
