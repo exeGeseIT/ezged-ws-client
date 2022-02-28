@@ -2,13 +2,12 @@
 
 namespace ExeGeseIT\EzGEDWsClient\Core;
 
-use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJob;
-use ExeGeseIT\EzGEDWsClient\Core\Dto\EzJobstatus;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServiceConfigurator;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\CreateRecordResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\EmptyResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\JobstatusResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\KeepaliveResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
@@ -41,54 +40,6 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
     {
         self::$services = [];
         
-        $fns = [
-
-            /*
-             * 
-            >>PerimeterResponse
-            self::REQ_GET_PERIMETER => function(array $reponse){
-                $r = $reponse[0]->rows;
-                $out = [];
-                foreach ($r as $stdClass) {
-                    $ezFamily = (new EzFamily())->init( $stdClass );
-                    $out[ $ezFamily->getId() ] = $ezFamily;
-                }
-                return $out;
-            },
-
-            >>SearchResponse
-             * self::REQ_EXEC_REQUEST => function(array $reponse){
-                $out = [];
-                foreach ($reponse as $stdClass) {
-                    $ezQuery = (new EzRow())->init( $stdClass );
-                    $out[ $ezQuery->getId() ] = $ezQuery;
-                }
-                return $out;
-            },
-            
-            >> CreateRecordResponse
-            self::REQ_CREATE_RECORD => function(array $reponse){
-                $ezBag = (new EzGenericBag('RETID'))->init( $reponse[0] );
-                return $ezBag;
-            },
-             * 
-             */
-
-            self::REQ_ADD_RECORD_FILE => function(array $reponse){
-                $ezJob = (new EzJob())->init( $reponse[0] );
-                return $ezJob;
-            },
-
-            self::REQ_GET_JOB_STATUS => function(array $reponse){
-                $ezJobstatus = (new EzJobstatus())->init( $reponse[0] );
-                return $ezJobstatus;
-            },
-            
-        ];
-
-
-        
-
         // Authent: sec/authenticate
         self::$services[ self::REQ_AUTH ] = (new EzGEDServiceConfigurator())
             ->setEndpoint('service.php')
@@ -240,10 +191,8 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'ocr' => 1,
                 'start' => -1,
             ])
-            ->setResponseFilter([
-                'JOBQUEUE_ID'
-            ])
-            ->setResponseFormater( $fns[self::REQ_ADD_RECORD_FILE] );
+            ->setReturnClass(JobstatusResponse::class)
+            ;
 
         /**
          * Connaitre le status d'un JOB
@@ -258,7 +207,8 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setQuery([
                 'jobqueueid' => 0,
             ])
-            ->setResponseFormater( $fns[self::REQ_GET_JOB_STATUS] );
+            ->setReturnClass(JobstatusResponse::class)
+            ;
 
     }
 

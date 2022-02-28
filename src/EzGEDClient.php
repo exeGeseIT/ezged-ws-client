@@ -7,6 +7,7 @@ use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\CreateRecordResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\EmptyResponse;
+use ExeGeseIT\EzGEDWsClient\Core\Response\JobstatusResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
@@ -412,5 +413,60 @@ class EzGEDClient
         return $this->authent()->ezGED->exec(EzGED::REQ_UPLOAD, $this->getParams($params), $this->getOptions($options));
     }
     
+    
+    /**
+     * Add a file (Page) to a record
+     *
+     * @param int $idrecord
+     * @param string $recordTable
+     * @param string $serverFilePath The server path to the file.
+     * @param bool $convertBeforeArchive FALSE to keep original format, TRUE to archive only converted file (depending on format)
+     * @return JobstatusResponse
+     */
+    public function addRecordPage(int $idrecord, string $recordTable, string $serverFilePath, bool $convertBeforeArchive = false): JobstatusResponse
+    {
+        $params = [
+            'tfqn' => $recordTable,
+            'rsid' => $idrecord,
+            'file' => $serverFilePath,
+            'ocr' => ($convertBeforeArchive ? 0 : 1),
+        ];
+
+        return $this->authent()->ezGED->exec(EzGED::REQ_ADD_RECORD_FILE, $this->getParams($params), $this->getOptions($options));
+    }
+    
+    /**
+     * Connaitre le status d'un job
+     *
+     * @param int $jobId
+     * @param bool $waitFinalState  if TRUE ==> waiting until job pass on 'final State' status (default: false)
+     * @return JobstatusResponse
+     */
+    public function getJobStatus(int $jobId, bool $waitFinalState = false): JobstatusResponse
+    {
+        $params = [
+            'jobqueueid' => $idjob,
+        ];
+
+        /** @var JobstatusResponse $response */
+        $response = $this->authent()->ezGED->exec(EzGED::REQ_GET_JOB_STATUS, $this->getParams($params), $this->getOptions($options));
+
+        if ( $waitFinalState && $response->isSucceed() && !$response->onFinalState() ) {
+
+            $retry = (60 / EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME);
+            $wait = true;
+            while ( $wait ) {
+                $this->logger && $this->logger->info( sprintf(' > waiting %ds before next job status request.', EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME));
+                sleep( EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME );
+                
+                $response = $this->authent()->ezGED->exec(EzGED::REQ_GET_JOB_STATUS, $this->getParams($params), $this->getOptions($options));
+                $retry--;
+
+                $wait = $retry && !$response->onFinalState();
+            }
+        }
+
+        return $response;
+    }
     
 }
