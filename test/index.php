@@ -1,22 +1,19 @@
 <?php
 
-use ExeGeseIT\EzGEDWsClient\EzGEDClient;
-use ExeGeseIT\EzGEDWsClient\EzGEDHelper;
-use Symfony\Component\HttpClient\HttpClient;
-
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
+use ExeGeseIT\EzGEDWsClient\EzGEDClient;
+use ExeGeseIT\EzGEDWsClient\EzGEDHelper;
+
 $config = require __DIR__ . '/config.php';
+dump(['config'=>$config]);
 
-$httpclient = HttpClient::create([
-    'verify_peer' => false,
-    'base_uri' => $config['api'] . '/data/',
-    'query' => [
-        'format' => 'json',
-    ],
-]);
-
-$ezWS = new EzGEDClient($httpclient, $config['user'], $config['pwd'], $config['api']);
+//$ezWS = new EzGEDClient( $config['api'], $httpclient=null, $config['user'], $config['pwd'], $sslVerifyPeer=false);
+$ezWS = (new EzGEDClient( $config['api'] ))
+    ->setApiUser($config['user'])
+    ->setApiPwd($config['pwd'])
+    ->setSslVerifyPeer(false)
+    ;
 
 /** /
 $response = $ezWS->connect(true);

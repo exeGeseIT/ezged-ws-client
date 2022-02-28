@@ -2,13 +2,13 @@
 =======================
 
 **ezged-ws-client** is a PHP wrapper for [ezGED's](https://www.ezdev.fr/) web services.
-It provide a fluent API relying on [Guzzle](https://github.com/guzzle/guzzle) project for the HTTP request layer.
+It provide a client relying on [symfony/http-client](https://github.com/symfony/http-client) component for the HTTP request layer.
 
 
 ## Installation
 
 ```sh
-composer require jcglombard/ezged-ws-client
+composer require exegeseit/ezged-ws-client
 ```
 
 After installing, you need to require Composer's autoloader:
@@ -16,6 +16,43 @@ After installing, you need to require Composer's autoloader:
 ```php
 require 'vendor/autoload.php';
 ```
+
+
+### EzGED API DESCRIPTION
+For convenience, you can find EzGED json web services descriptions [here](https://wiki.ezdev.fr/doku.php?id=dev:api:webservices:json)
+
+
+### USAGE
+```php
+<?php
+
+require_once 'vendor/autoload.php';
+
+use ExeGeseIT\EzGEDWsClient\EzGEDClient;
+use ExeGeseIT\EzGEDWsClient\EzGEDHelper;
+
+$config = [
+  'url' => 'https://myserver.io/ezged3',
+  'user' => 'wsuser',
+  'pwd' => 'YourPassW0$l*',
+];;
+
+//$ezWS = new EzGEDClient( $ezgedUrl=$config['url'], $httpclient=null, $apiUser=$config['user'], $apiPwd=$config['pwd'], $sslVerifyPeer=false);
+$ezWS = (new EzGEDClient( $config['url'] ))
+    ->setApiUser($config['user'])
+    ->setApiPwd($config['pwd'])
+    ->setSslVerifyPeer(false)
+    ;
+
+
+$response = $ezWS->connect(true);
+
+
+
+$ezWS->logout();
+
+```
+
 
 
 ### TODO:

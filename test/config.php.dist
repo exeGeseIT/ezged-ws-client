@@ -1,7 +1,7 @@
 <?php
 
 return [
-  'api' => 'https://localhost.fr/ezged3',
+  'api' => 'https://myserver.io/ezged3',
   'user' => 'wsuser',
   'pwd' => 'YourPassW0$l*',
 ];
