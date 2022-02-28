@@ -7,7 +7,7 @@ namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-class EzRow extends EzGenericBag
+class EzRecord extends EzGenericBag
 {
 
     /**

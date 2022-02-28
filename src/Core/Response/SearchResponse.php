@@ -2,7 +2,7 @@
 
 namespace ExeGeseIT\EzGEDWsClient\Core\Response;
 
-use ExeGeseIT\EzGEDWsClient\Core\Dto\EzRow;
+use ExeGeseIT\EzGEDWsClient\Core\Dto\EzRecord;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseAbstract;
 use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBag;
 
@@ -19,7 +19,7 @@ class SearchResponse extends EzGEDResponseAbstract
         if ( $rows ) {
             $out = [];
             foreach ($rows as $item) {
-                $ezRow = (new EzRow())->init($item);
+                $ezRow = (new EzRecord())->init($item);
                 $out[ $ezRow->getId() ] = $ezRow;
             }
             $this->content = new ParameterBag($out);
