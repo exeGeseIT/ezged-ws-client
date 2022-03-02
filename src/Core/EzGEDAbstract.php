@@ -151,6 +151,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'tfqn' => '',
                 'fields' => '',
                 'values' => '',
+                'qryid' => null,
             ])
             ->setReturnClass(CreateRecordResponse::class)
             ;

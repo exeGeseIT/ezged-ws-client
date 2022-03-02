@@ -352,14 +352,16 @@ class EzGEDClient
      *
      * @param string $recordTable
      * @param array $fields
-     * @return self
+     * @param int|null $qryid (default: null)
+     * @return CreateRecordResponse
      */
-    public function createRecord(string $recordTable, array $fields): CreateRecordResponse
+    public function createRecord(string $recordTable, array $fields, ?int $qryid = null): CreateRecordResponse
     {
         $params = [
             'tfqn' => $recordTable,
             'fields' => \json_encode(array_keys($fields)),
             'values' => \json_encode(array_values($fields)),
+            'qryid' => $qryid,
         ];
 
         return $this->authent()->ezGED->getHttpresponse(EzGED::REQ_CREATE_RECORD, $this->getParams($params), $this->getOptions());
@@ -373,7 +375,7 @@ class EzGEDClient
      * @param string $recordTable
      * @param string $primaryField
      * @param array $fields
-     * @return self
+     * @return EmptyResponse
      */
     public function updateRecord(int $idrecord, string $recordTable, string $primaryField, array $fields): EmptyResponse
     {
@@ -468,7 +470,6 @@ class EzGEDClient
     }
     
     /**
-     * Connaitre le status d'un job
      *
      * @param int $jobId
      * @param bool $waitFinalState  if TRUE ==> waiting until job pass on 'final State' status (default: false)
