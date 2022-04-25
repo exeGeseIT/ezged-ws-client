@@ -10,11 +10,11 @@
         }
     ],
     "require": {
-        "php": ">=7.1",
-        "psr/log": "^1.1",
-        "symfony/filesystem": "^5.4",
-        "symfony/http-client": "^5.4",
-        "symfony/mime": "^5.4"
+        "php": ">=7.2.5",
+        "psr/log": "^1|^2|^3",
+        "symfony/filesystem": "^5.4|^6.0",
+        "symfony/http-client": "^5.4|^6.0",
+        "symfony/mime": "^5.4|^6.0"
     },
     "config": {
         "sort-packages": true,
@@ -28,7 +28,7 @@
         }
     },
     "require-dev": {
-        "symfony/var-dumper": "^5.4"
+        "symfony/var-dumper": "^5.4|^6.0"
     },
     "extra": {
         "branch-alias": {
