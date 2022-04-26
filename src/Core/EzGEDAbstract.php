@@ -48,6 +48,8 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setQuery([
                 'login' => '',
                 'pwd' => '',
+                
+                'domain' => null,
             ])
             ->setReturnClass(ConnectResponse::class)
             ;

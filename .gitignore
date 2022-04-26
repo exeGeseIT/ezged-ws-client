@@ -4,3 +4,4 @@ composer.phar
 /test/config.php
 /test/*.log
 /nbproject/private/
+/test/.php-version

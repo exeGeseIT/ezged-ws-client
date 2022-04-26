@@ -32,6 +32,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class EzGEDClient
 {
     private string $apiUrl;
+    private ?string $apiDomain = null;
     private string $apiUser = '';
     private string $apiPwd = '';
     private bool $sslVerifyPeer = true;
@@ -62,6 +63,18 @@ class EzGEDClient
     }
     
     /**
+     * @param ?string $apiDomain
+     * @return self
+     */
+    public function setApiDomain(?string $apiDomain): self
+    {
+        $apiDomain = empty($apiDomain) ? null : trim($apiDomain);
+        $this->sessionid = ($apiDomain === $this->apiDomain) ?: null;
+        $this->apiDomain = $apiDomain;
+        return $this;
+    }
+    
+    /**
      * @param string $apiUser
      * @return self
      */
@@ -71,17 +84,26 @@ class EzGEDClient
         $this->apiUser = $apiUser;
         return $this;
     }
-
+    
     /**
      * @param string $apiPwd
      * @return self
      */
     public function setApiPwd(string $apiPwd): self
     {
-        $this->sessionid = (md5($apiPwd) === $this->apiPwd) ?: null;
-        $this->apiPwd = md5($apiPwd);
+        $this->sessionid = ($apiPwd === $this->apiPwd) ?: null;
+        $this->apiPwd = $apiPwd;
         $this->sessionid = null;
         return $this;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getApiPwd(): string
+    {
+        //In "Domaine" context, pwd should be send clearly :/
+        return $this->apiDomain ? $this->apiPwd : md5($this->apiPwd);
     }
     
     /**
@@ -102,10 +124,12 @@ class EzGEDClient
      * @param HttpClientInterface|null $httpclient
      * @param string|null $apiUser
      * @param string|null $apiPwd
+     * @param string|null $apiDomain
      * @param bool|null $sslVerifyPeer (default: true)
      */
-    public function __construct(string $ezgedUrl, ?HttpClientInterface $httpclient = null, ?string $apiUser = null, ?string $apiPwd = null, ?bool $sslVerifyPeer = true)
+    public function __construct(string $ezgedUrl, ?HttpClientInterface $httpclient = null, ?string $apiUser = null, ?string $apiPwd = null, ?string $apiDomain = null, ?bool $sslVerifyPeer = true)
     {
+        $this->setApiDomain( $apiDomain );
         $this->setApiUser($apiUser ?? \time());
         $this->setApiPwd($apiPwd ?? '');
         $this->apiUrl = Path::canonicalize( ($ezgedUrl ?? '/ezged')) . '/data/';
@@ -164,8 +188,9 @@ class EzGEDClient
     public function connect(bool $withKeepalive = false): ConnectResponse
     {
         $params = [
+            'domain' => $this->apiDomain,
             'login' => $this->apiUser,
-            'pwd' => $this->apiPwd,
+            'pwd' => $this->getApiPwd(),
         ];
         
         /** @var ConnectResponse $ezResponse */
