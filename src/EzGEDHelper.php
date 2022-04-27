@@ -2,6 +2,8 @@
 
 namespace ExeGeseIT\EzGEDWsClient;
 
+use ExeGeseIT\EzGEDWsClient\Exception\InvalidArgumentException;
+
 /**
  * Description of EzGEDHelper
  *
@@ -13,6 +15,8 @@ class EzGEDHelper
     const DEFAULT_UPLOAD_TOKEN = 'c3e335143464469a1ca542c21147f913';
     
     const DEFAULT_JOBSTATUS_POOLING_WAITTIME = 2;
+    
+    private const OPERATORS = ['=', '>=', '<=', 'like'];
     
     /**
      * Le job est prêt et en attente d'être traité par le serveur de travaux
@@ -50,7 +54,12 @@ class EzGEDHelper
     
     private static function setSearchFilter(string $field, string $value, string $operator): array
     {
-        $isOperatorOK = in_array($operator,['=', '>=', '<=', 'like']);
+        if ( !in_array($operator, self::OPERATORS) ) {
+            throw new InvalidArgumentException(sprintf('%s: valid operators are (%), received: \"%s\"', 
+                __METHOD__, implode(', ', self::OPERATORS), $operator
+            ));
+        }
+        
         return [
             'field' => $field,
             'operator' => $operator,
