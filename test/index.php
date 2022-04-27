@@ -35,7 +35,7 @@ dump(['getPerimeter' => $response]);
 
 /** /
 $idquery = 3;
-$response = $ezWS->search($idquery, null, 5, EzGEDHelper::likeSearchFilter('DOCUMENTRECRUTEMENT_APPLICANT', 'CHA'));
+$filter = EzGEDHelper::likeSearchFilter('DOCUMENTRECRUTEMENT_APPLICANT', 'CHA');
 dump(['search' => $response]);
 
 /** /

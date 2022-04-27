@@ -30,18 +30,25 @@ class EzRecord extends EzGenericBag
      */
     public function init(iterable $data): self
     {
+        $_pks = [];
         foreach ($data as $property => $value) {
             if ('rows' !== $property) {
                 $this->setProperty($property, $value);
             }
 
-            //Autodetermination de la PK
             $matches = [];
-            if (null === $this->getPkField() && preg_match('/(^.*)_ID$/i',$property,$matches)) {
-                $this->pkField = $matches[0];
-                $this->tablename = $matches[1];
+            if (preg_match('/(^.*)_ID$/i',$property,$matches)) {
+                $_pks[] = $matches;
             }
         }
+        
+        //Autodetermination de la PK
+        $matches = [];
+        if (null === $this->getPkField() && 1 === count($_pks)) {
+            $this->pkField = $_pks[0][0];
+            $this->tablename = $_pks[0][1];
+        }
+        
         return $this;
     }
 }

@@ -24,7 +24,7 @@ abstract class EzBagAbstract implements EzBagInterface
      * @param iterable $rawData
      * @return EzBagInterface
      */
-    abstract function init(iterable $rawData): EzBagInterface;
+    abstract public function init(iterable $rawData): EzBagInterface;
     
     
     

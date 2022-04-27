@@ -20,7 +20,7 @@ class PerimeterResponse extends EzGEDResponseAbstract
             $out = [];
             foreach ($rows as $item) {
                 $ezFamily = (new EzFamily())->init($item);
-                $out[ $ezFamily->getId() ] = $ezFamily;
+                $out[ $this->tokenize($ezFamily) ] = $ezFamily;
             }
             $this->content = new ParameterBag($out);
         }

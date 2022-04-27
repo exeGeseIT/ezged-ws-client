@@ -2,6 +2,7 @@
 
 namespace ExeGeseIT\EzGEDWsClient\Core;
 
+use ExeGeseIT\EzGEDWsClient\Core\Dto\EzBagInterface;
 use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBagInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -30,6 +31,11 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
     
     
 
+    protected function tokenize(EzBagInterface $ezBag): string
+    {
+        return $ezBag->getId() ?? sprintf('_%s', bin2hex(random_bytes(16)));
+    }
+    
     /**
      * Gets the HTTP headers of the http response.
      *
