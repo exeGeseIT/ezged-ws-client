@@ -1,8 +1,9 @@
 <?php
 
 return [
-  'api' => 'https://myserver.io/ezged3',
-  'user' => 'wsuser',
-  'pwd' => 'YourPassW0$l*',
+    'api' => 'https://myserver.io/ezged3',
+    'domain' => null,
+    'user' => 'wsuser',
+    'pwd' => 'YourPassW0$l*',
 ];
 
