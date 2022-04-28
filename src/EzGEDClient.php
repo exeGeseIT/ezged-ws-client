@@ -4,6 +4,7 @@ namespace ExeGeseIT\EzGEDWsClient;
 
 use ExeGeseIT\EzGEDWsClient\Core\EzGED;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
+use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\CreateRecordResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\EmptyResponse;
@@ -194,7 +195,7 @@ class EzGEDClient
         ];
         
         /** @var ConnectResponse $ezResponse */
-        $ezResponse = $this->ezGED->exec(EzGED::REQ_AUTH, $params, $this->getOptions());
+        $ezResponse = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH, $params, $this->getOptions());
         
         if ( !$ezResponse->isSucceed() ) {
             throw new AuthenticationException($ezResponse->getMessage(), -1);
@@ -204,7 +205,7 @@ class EzGEDClient
         $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
 
         if ( $withKeepalive ) {
-            if ( $this->ezGED->exec(EzGED::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed() ) {
+            if ( $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed() ) {
                 $this->keepalive = true;
             }
             $this->logger && $this->logger->debug( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->sessionid, ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
@@ -226,7 +227,7 @@ class EzGEDClient
         ];
 
         /** @var EzGEDResponseInterface $ezResponse */
-        $ezResponse = $this->ezGED->exec(EzGED::REQ_LOGOUT, $this->getParams($params), $this->getOptions());
+        $ezResponse = $this->ezGED->exec(EzGEDServicesInterface::REQ_LOGOUT, $this->getParams($params), $this->getOptions());
         if ( !$ezResponse->isSucceed() ) {
             throw new LogoutException($ezResponse->getMessage(), $ezResponse->getMessage());
         }
@@ -247,7 +248,7 @@ class EzGEDClient
      */
     public function getPerimeter(): PerimeterResponse
     {
-        return $this->authent()->ezGED->exec(EzGED::REQ_GET_PERIMETER, $this->getParams(), $this->getOptions());
+        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_PERIMETER, $this->getParams(), $this->getOptions());
     }
     
     /**
@@ -265,10 +266,11 @@ class EzGEDClient
       * @param int $idview view ID (QRY_ID)
       * @param int|null $offset offset for paging the result
       * @param int|null $limit number of result rows returned
-      * @param array|null $filter filters of the form ['field'=>, 'operator'=> 'value'=>]
+      * @param array|null $filters filters of the form [['field'=>, 'operator'=> 'value'=>], ...]
+      * @param array|null $sorts order of the form [['field'=>, 'direction'=> ], ...]
       * @return SearchResponse
       */
-    public function search(int $idview, ?int $offset = null, ?int $limit = null, ?array $filter = null): SearchResponse
+    public function search(int $idview, ?int $offset = null, ?int $limit = null, ?array $filters = null, ?array $sorts = null): SearchResponse
     {
         $params = [
             'qryid' => $idview,
@@ -276,19 +278,60 @@ class EzGEDClient
             'limitgridlines' => $limit,
         ];
 
-        if ( !empty($filter) ) {
-            $isKeyOk = isset($filter['field'], $filter['operator'], $filter['value']);
-            $operator = isset($filter['operator']) ? strtolower($filter['operator']) : '-!!-';
-            $isOperatorOK = in_array($operator,['=', '>=', '<=', 'like']);
+        // SORTING
+        if ( !empty($sorts) ) {
+            $_sort = [
+                'qryusrorderfld' => [],
+                'qryusrorderdirection' => [],
+            ];
+            
+            $isArrayOfArrays = $sorts === array_filter($sorts, 'is_array');
+            $sorts = $isArrayOfArrays ? $sorts : [ $sorts ];
+            foreach ($sorts as $sort) {
+                $isKeyOk = isset($sort['field'], $sort['direction']);
+                $direction = isset($sort['direction']) ? strtoupper($sort['direction']) : '-!!-';
+                
+                if ($isKeyOk && EzGEDHelper::isSearchDirection($direction)) {
+                    $_sort['qryusrorderfld'][] = $sort['field'];
+                    $_sort['qryusrorderdirection'][] = $direction;
+                }
+            }
 
-            if ($isKeyOk && $isOperatorOK) {
-                $params['qryusrffqn'] = $filter['field'];
-                $params['qryusrop'] = $operator;
-                $params['qryusrval'] = $filter['value'];
+            if ( count($_sort['qryusrorderfld']) ) {
+                $params['qryusrorderfld'] = sprintf('["%s"]', implode('","', $_sort['qryusrorderfld']));
+                $params['qryusrorderdirection'] = sprintf('["%s"]', implode('","', $_sort['qryusrorderdirection']));
             }
         }
 
-        return $this->authent()->ezGED->exec(EzGED::REQ_EXEC_REQUEST, $this->getParams($params), $this->getOptions());
+        // FILTERING
+        if ( !empty($filters) ) {
+            $_flt = [
+                'qryusrffqn' => [],
+                'qryusrop' => [],
+                'qryusrval' => [],
+            ];
+            
+            $isArrayOfArrays = $filters === array_filter($filters, 'is_array');
+            $filters = $isArrayOfArrays ? $filters : [ $filters ];
+            foreach ($filters as $filter) {
+                $isKeyOk = isset($filter['field'], $filter['operator'], $filter['value']);
+                $operator = isset($filter['operator']) ? strtolower($filter['operator']) : '-!!-';
+                
+                if ($isKeyOk && EzGEDHelper::isSearchOperator($operator)) {
+                    $_flt['qryusrffqn'][] = $filter['field'];
+                    $_flt['qryusrop'][] = $operator;
+                    $_flt['qryusrval'][] = $filter['value'];
+                }
+            }
+
+            if ( count($_flt['qryusrffqn']) ) {
+                $params['qryusrffqn'] = sprintf('["%s"]', implode('","', $_flt['qryusrffqn']));
+                $params['qryusrop'] = sprintf('["%s"]', implode('","', $_flt['qryusrop']));
+                $params['qryusrval'] = sprintf('["%s"]', implode('","', $_flt['qryusrval']));
+            }
+        }
+
+        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_EXEC_REQUEST, $this->getParams($params), $this->getOptions());
     }
     
     
@@ -310,7 +353,7 @@ class EzGEDClient
             'limitgridlines' => $limit,
         ];
 
-        return $this->authent()->ezGED->exec(EzGED::REQ_GET_RECORD_FILES, $this->getParams($params), $this->getOptions());
+        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_RECORD_FILES, $this->getParams($params), $this->getOptions());
     }
     
     
@@ -332,7 +375,7 @@ class EzGEDClient
             'mobile' => 1,
         ];
 
-        $response = $this->authent()->ezGED->getHttpresponse(EzGED::REQ_DOWNLOAD_FILE, $this->getParams($params), $this->getOptions());
+        $response = $this->authent()->ezGED->getHttpresponse(EzGEDServicesInterface::REQ_DOWNLOAD_FILE, $this->getParams($params), $this->getOptions());
         
         if ( 200 !== $response->getStatusCode() ) {
             throw new EzGEDClientException('Request failed with status code: '.$response->getStatusCode(), $response->getStatusCode());
@@ -389,7 +432,7 @@ class EzGEDClient
             'qryid' => $qryid,
         ];
 
-        return $this->authent()->ezGED->getHttpresponse(EzGED::REQ_CREATE_RECORD, $this->getParams($params), $this->getOptions());
+        return $this->authent()->ezGED->getHttpresponse(EzGEDServicesInterface::REQ_CREATE_RECORD, $this->getParams($params), $this->getOptions());
     }
     
     
@@ -413,7 +456,7 @@ class EzGEDClient
             'values' => \json_encode(array_values($fields)),
         ];
         
-        return $this->authent()->ezGED->getHttpresponse(EzGED::REQ_UPDATE_RECORD, $this->getParams($params), $this->getOptions());
+        return $this->authent()->ezGED->getHttpresponse(EzGEDServicesInterface::REQ_UPDATE_RECORD, $this->getParams($params), $this->getOptions());
     }
     
     
@@ -469,7 +512,7 @@ class EzGEDClient
             'body' => $formData->bodyToIterable(),
         ];
 
-        return $this->authent()->ezGED->exec(EzGED::REQ_UPLOAD, $this->getParams($params), $this->getOptions($options));
+        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_UPLOAD, $this->getParams($params), $this->getOptions($options));
     }
     
     
@@ -491,7 +534,7 @@ class EzGEDClient
             'ocr' => ($convertBeforeArchive ? 0 : 1),
         ];
 
-        return $this->authent()->ezGED->exec(EzGED::REQ_ADD_RECORD_FILE, $this->getParams($params), $this->getOptions($options));
+        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_ADD_RECORD_FILE, $this->getParams($params), $this->getOptions($options));
     }
     
     /**
@@ -507,7 +550,7 @@ class EzGEDClient
         ];
 
         /** @var JobstatusResponse $response */
-        $response = $this->authent()->ezGED->exec(EzGED::REQ_GET_JOB_STATUS, $this->getParams($params), $this->getOptions($options));
+        $response = $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_JOB_STATUS, $this->getParams($params), $this->getOptions($options));
 
         if ( $waitFinalState && $response->isSucceed() && !$response->onFinalState() ) {
 
@@ -517,7 +560,7 @@ class EzGEDClient
                 $this->logger && $this->logger->info( sprintf(' > waiting %ds before next job status request.', EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME));
                 sleep( EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME );
                 
-                $response = $this->authent()->ezGED->exec(EzGED::REQ_GET_JOB_STATUS, $this->getParams($params), $this->getOptions($options));
+                $response = $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_JOB_STATUS, $this->getParams($params), $this->getOptions($options));
                 $retry--;
 
                 $wait = $retry && !$response->onFinalState();

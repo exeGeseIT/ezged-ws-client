@@ -17,6 +17,7 @@ class EzGEDHelper
     const DEFAULT_JOBSTATUS_POOLING_WAITTIME = 2;
     
     private const OPERATORS = ['=', '>=', '<=', 'like'];
+    private const DIRECTIONS = ['ASC', 'DESC'];
     
     /**
      * Le job est prêt et en attente d'être traité par le serveur de travaux
@@ -54,17 +55,76 @@ class EzGEDHelper
     
     private static function setSearchFilter(string $field, string $value, string $operator): array
     {
-        if ( !in_array($operator, self::OPERATORS) ) {
-            throw new InvalidArgumentException(sprintf('%s: valid operators are (%), received: \"%s\"', 
-                __METHOD__, implode(', ', self::OPERATORS), $operator
-            ));
-        }
-        
         return [
             'field' => $field,
             'operator' => $operator,
             'value' => $value,
         ];
+    }
+    
+    private static function setSearchDirection(string $field, string $direction): array
+    {
+        return [
+            'field' => $field,
+            'direction' => $direction,
+        ];
+    }
+    
+    /**
+     * 
+     * @param string $direction
+     * @param bool $throwIfInvalid if true, throw an InvalidArgumentException if invalid
+     * @return bool
+     * 
+     * @throws InvalidArgumentException
+     */
+    public static function isSearchDirection(string $direction, bool $throwIfInvalid = false): bool
+    {
+        if ( $throwIfInvalid && !in_array($direction, self::DIRECTIONS) ) {
+            throw new InvalidArgumentException(sprintf('%s: valid direction are (%), received: \"%s\"', 
+                __METHOD__, implode(', ', self::DIRECTIONS), $direction
+            ));
+        }
+        return in_array($direction, self::DIRECTIONS);
+    }
+    
+    /**
+     *  field ASC
+     * @param string $field
+     * @return array
+     */
+    public static function orderASC(string $field): array
+    {
+        return self::setSearchDirection($field, 'ASC');
+    }
+    
+    /**
+     *  field DESC
+     * @param string $field
+     * @return array
+     */
+    public static function orderDESC(string $field): array
+    {
+        return self::setSearchDirection($field, 'DESC');
+    }
+
+
+    /**
+     * 
+     * @param string $operator
+     * @param bool $throwIfInvalid if true, throw an InvalidArgumentException if invalid
+     * @return bool
+     * 
+     * @throws InvalidArgumentException
+     */
+    public static function isSearchOperator(string $operator, bool $throwIfInvalid = false): bool
+    {
+        if ( $throwIfInvalid && !in_array($operator, self::OPERATORS) ) {
+            throw new InvalidArgumentException(sprintf('%s: valid operators are (%), received: \"%s\"', 
+                __METHOD__, implode(', ', self::OPERATORS), $operator
+            ));
+        }
+        return in_array($operator, self::OPERATORS);
     }
     
     /**
