@@ -16,6 +16,8 @@ abstract class EzBagAbstract implements EzBagInterface
 
     protected ParameterBag $propertiesBag;
     protected array $elements = [];
+    
+    private array $_properties = [];
 
     
     
@@ -42,11 +44,7 @@ abstract class EzBagAbstract implements EzBagInterface
     }
     
     /**
-     * Gets property value.
-     *
-     * @return array|bool|string|int|float|null
-     *
-     * @throws ParameterNotFoundException if the parameter is not defined
+     * {@inheritdoc}
      */
     public function getProperty(string $name)
     {
@@ -54,20 +52,26 @@ abstract class EzBagAbstract implements EzBagInterface
     }
         
     /**
-     * 
-     * @param string $name
-     * @param type $value
-     * @return self
+     * {@inheritdoc}
      */
     public function setProperty(string $name, $value): self
     {
+        $this->_properties[ strtolower($name) ] = $name;
         $this->propertiesBag->add(strtolower($name), $value);
         return $this;
     }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function getPropertyName(string $property): ?string
+    {
+        $name = strtolower($property);
+        return isset($this->_properties[$name]) ? $this->_properties[$name] : null;
+    }
 
     /**
-     * 
-     * @return array
+     * {@inheritdoc}
      */
     public function getElements(): array
     {

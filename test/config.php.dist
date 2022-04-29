@@ -5,5 +5,7 @@ return [
     'domain' => null,
     'user' => 'wsuser',
     'pwd' => 'YourPassW0$l*',
+    
+    'test-script-file' => '_path_to_test_script.php_',
 ];
 

@@ -274,7 +274,7 @@ class EzGEDClient
     {
         $params = [
             'qryid' => $idview,
-            'limitstart' => $offset,
+            'limitstart' => $offset ?? 0,
             'limitgridlines' => $limit,
         ];
 

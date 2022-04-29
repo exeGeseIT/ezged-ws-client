@@ -22,6 +22,9 @@ class ParameterBag implements ParameterBagInterface
         }
     }
     
+    /**
+     * {@inheritdoc}
+     */
     public function add(string $name, $value): self
     {
         $this->parameters[ $name ] = is_array($value) ? new self($value) : $value;
@@ -30,9 +33,7 @@ class ParameterBag implements ParameterBagInterface
 
 
     /**
-     * Gets all bag data.
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function all(): array
     {
@@ -40,9 +41,7 @@ class ParameterBag implements ParameterBagInterface
     }
     
     /**
-     * Returns true if a parameter name is defined.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function has(string $name): bool
     {
@@ -50,11 +49,7 @@ class ParameterBag implements ParameterBagInterface
     }
 
     /**
-     * Gets a bag parameter.
-     *
-     * @return array|bool|string|int|float|null
-     *
-     * @throws ParameterNotFoundException if the parameter is not defined
+     * {@inheritdoc}
      */
     public function get(string $name)
     {
@@ -64,7 +59,7 @@ class ParameterBag implements ParameterBagInterface
             }
 
             $alternatives = [];
-            foreach ($this->parameters as $key => $parameterValue) {
+            foreach (array_keys($this->parameters) as $key) {
                 $lev = levenshtein($name, $key);
                 if ($lev <= \strlen($name) / 3 || str_contains($key, $name)) {
                     $alternatives[] = $key;

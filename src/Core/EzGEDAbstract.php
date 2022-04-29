@@ -117,7 +117,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setMethod('GET')
             ->setQuery([
                 'qryid' => '',
-                'limitstart' => null,
+                'limitstart' => 0,
                 'limitgridlines' => EzGEDHelper::DEFAULT_SEARCH_LIMIT,
 
                 'qryusrorderfld' => null,       //Liste des champs sur lesquels seront effectués le tri
@@ -126,6 +126,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
                 'qryusrffqn' => null, //Liste des champs sur lesquels seront  filtrés le résultat
                 'qryusrop' => null,   //Liste des opérateurs de filtre (dans le même ordre que les champs)
                 'qryusrval' => null,  //Liste des valeurs de filtre (dans le même ordre que les champs)
+                'exec' => 1,
             ])
             ->setReturnClass(SearchResponse::class)
             ;
