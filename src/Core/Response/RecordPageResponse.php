@@ -18,8 +18,8 @@ class RecordPageResponse extends EzGEDResponseAbstract
     
     public function __construct(ResponseInterface $httpresponse, string $apiUrl)
     {
-        parent::__construct($httpresponse);
         $this->apiUrl = $apiUrl;
+        parent::__construct($httpresponse);
     }
     
     protected function initialize(array $data): void

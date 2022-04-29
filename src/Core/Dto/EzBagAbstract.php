@@ -17,7 +17,7 @@ abstract class EzBagAbstract implements EzBagInterface
     protected ParameterBag $propertiesBag;
     protected array $elements = [];
     
-    private array $_properties = [];
+    private array $propertyMap = [];
 
     
     
@@ -56,7 +56,7 @@ abstract class EzBagAbstract implements EzBagInterface
      */
     public function setProperty(string $name, $value): self
     {
-        $this->_properties[ strtolower($name) ] = $name;
+        $this->propertyMap[ strtolower($name) ] = $name;
         $this->propertiesBag->add(strtolower($name), $value);
         return $this;
     }
@@ -67,7 +67,7 @@ abstract class EzBagAbstract implements EzBagInterface
     public function getPropertyName(string $property): ?string
     {
         $name = strtolower($property);
-        return isset($this->_properties[$name]) ? $this->_properties[$name] : null;
+        return isset($this->propertyMap[$name]) ? $this->propertyMap[$name] : null;
     }
 
     /**
