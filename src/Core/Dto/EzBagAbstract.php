@@ -46,7 +46,7 @@ abstract class EzBagAbstract implements EzBagInterface
     /**
      * {@inheritdoc}
      */
-    public function hasProperty(string $name)
+    public function hasProperty(string $name): bool
     {
         return $this->propertiesBag->has( strtolower($name) );
     }
