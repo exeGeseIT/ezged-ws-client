@@ -12,6 +12,12 @@ interface EzBagInterface
     public function getId(): ?int;
     
     /**
+     * Returns true if a parameter name is defined.
+     * @return bool
+     */
+    public function hasProperty(string $name): bool;
+    
+    /**
      * @return array|bool|string|int|float|null
      * @throws ParameterNotFoundException if the parameter is not defined
      */
