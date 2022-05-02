@@ -62,7 +62,7 @@ interface EzGEDResponseInterface
      * @return mixed An array of all available info, or one of them when $type is
      *               provided, or null when an unsupported type is requested
      */
-    public function getHttpInfo(string $type = null): array;
+    public function getHttpInfo(string $type = null);
     
     /**
      * 

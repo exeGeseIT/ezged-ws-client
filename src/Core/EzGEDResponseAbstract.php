@@ -55,7 +55,7 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
     /**
      * {@inheritDoc}
      */
-    public function getHttpInfo(string $type = null): array
+    public function getHttpInfo(string $type = null)
     {
         return $this->httpresponse->getInfo($type);
     }
