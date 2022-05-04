@@ -52,7 +52,7 @@ class EzGEDClient
     
     /**
      * @param LoggerInterface $logger
-     * @return void
+     * @return self
      */
     public function setLogger(LoggerInterface $logger): self
     {
