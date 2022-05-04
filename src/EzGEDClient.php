@@ -14,6 +14,7 @@ use ExeGeseIT\EzGEDWsClient\Core\Response\PerimeterResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\RecordPageResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\SearchResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\UploadResponse;
+use ExeGeseIT\EzGEDWsClient\Core\SessionManager\ProxySesionManager;
 use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
 use ExeGeseIT\EzGEDWsClient\Exception\EzGEDClientException;
 use ExeGeseIT\EzGEDWsClient\Exception\LogoutException;
@@ -42,11 +43,11 @@ class EzGEDClient
     private Filesystem $filesystem;
     
     private bool $keepalive = false;
-    private ?string $sessionid = null;
+    //private ?string $sessionid = null;
     private ?array $cookie = null;
     
     private EzGED $ezGED;
-    private ?EzGEDSessionManagerInterface $sessionManager = null;
+    private EzGEDSessionManagerInterface $sessionManager;
     
     private ?LoggerInterface $logger = null;
     
@@ -58,6 +59,15 @@ class EzGEDClient
     {
         $this->logger = $logger;
         return $this;
+    }
+    
+    /**
+     * @param string|null $msg
+     * @return void
+     */
+    private function log(?string $msg): void
+    {
+        $this->logger && $this->logger->debug($msg);
     }
 
     /**
@@ -73,7 +83,7 @@ class EzGEDClient
         
     public function isKeepalive(): bool
     {
-        return $this->getSessionid() && $this->keepalive;
+        return $this->keepalive && $this->getSessionid();
     }
     
     /**
@@ -158,7 +168,8 @@ class EzGEDClient
      */
     private function getSessionid(): ?string
     {
-        return (null === $this->sessionManager) ? $this->sessionid : $this->sessionManager->getIdSesion();
+        //return (null === $this->sessionManager) ? $this->sessionid : $this->sessionManager->getIdSession();
+        return $this->sessionManager->getIdSession();
     }
 
     /**
@@ -167,11 +178,12 @@ class EzGEDClient
      */
     private function setSessionid(?string $sessionid): void
     {
-        if ( null !== $this->sessionManager) {
-            $this->sessionManager->setIdSesion($sessionid);
+        $this->sessionManager->setIdSession($sessionid);
+        /*if ( null !== $this->sessionManager) {
+            $this->sessionManager->setIdSession($sessionid);
             $sessionid = null;
         }
-        $this->sessionid = $sessionid;
+        $this->sessionid = $sessionid;*/
     }
 
     
@@ -187,13 +199,14 @@ class EzGEDClient
      */
     public function __construct(string $ezgedUrl, ?HttpClientInterface $httpclient = null, ?string $apiUser = null, ?string $apiPwd = null, ?string $apiDomain = null, ?bool $sslVerifyPeer = true)
     {
+        $this->sessionManager = new ProxySesionManager();
+        
         $this->setApiDomain( $apiDomain );
         $this->setApiUser($apiUser ?? \time());
         $this->setApiPwd($apiPwd ?? '');
         $this->apiUrl = Path::canonicalize( ($ezgedUrl ?? '/ezged')) . '/data/';
         $this->setSslVerifyPeer($sslVerifyPeer ?? true);
         
-        $this->filesystem = new Filesystem();
         
         $this->ezGED = new EzGED($httpclient ?? HttpClient::create(), $this->apiUrl);
     }
@@ -265,7 +278,7 @@ class EzGEDClient
             if ( $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed() ) {
                 $this->keepalive = true;
             }
-            $this->logger && $this->logger->debug( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->getSessionid(), ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
+            $this->log( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->getSessionid(), ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
         }
         return $ezResponse;
     }
@@ -450,6 +463,10 @@ class EzGEDClient
         
         $output = Path::canonicalize($saveFilepath . '/' . $saveFilename);
         $path = Path::getDirectory($output);
+        
+        if ( null === $this->filesystem ) {
+            $this->filesystem = new Filesystem();
+        }
         $this->filesystem->mkdir($path);
         
         $size = 0;

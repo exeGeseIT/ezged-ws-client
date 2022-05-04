@@ -16,13 +16,13 @@ interface EzGEDSessionManagerInterface
     public function setToken(string $token): void;
     
     /**
-     * @param string|null $idsession
-     * @return void
-     */
-    public function setIdSession(?string $idsession): void;
-    
-    /**
      * @return string|null
      */
     public function getIdSession(): ?string;
+    
+    /**
+     * @param string|null $idsession
+     * @return string|null
+     */
+    public function setIdSession(?string $idsession): ?string;
 }

@@ -15,7 +15,7 @@ $ezWS = (new EzGEDClient( $config['api'] ))
     ;
 
 /**/
-$response = $ezWS->connect(true);
+$response = $ezWS->connect(false);
 dump([
     'message' => $response->getMessage(),
     'connect' => $response->getHttpHeaders(),
