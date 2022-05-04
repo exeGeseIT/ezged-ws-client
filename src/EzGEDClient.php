@@ -5,6 +5,7 @@ namespace ExeGeseIT\EzGEDWsClient;
 use ExeGeseIT\EzGEDWsClient\Core\EzGED;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
+use ExeGeseIT\EzGEDWsClient\Core\EzGEDSessionManagerInterfce;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\CreateRecordResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\EmptyResponse;
@@ -45,6 +46,7 @@ class EzGEDClient
     private ?array $cookie = null;
     
     private EzGED $ezGED;
+    private ?EzGEDSessionManagerInterfce $sessionManager = null;
     
     private ?LoggerInterface $logger = null;
     
@@ -52,15 +54,26 @@ class EzGEDClient
      * @param LoggerInterface $logger
      * @return void
      */
-    public function setLogger(LoggerInterface $logger): void
+    public function setLogger(LoggerInterface $logger): self
     {
         $this->logger = $logger;
+        return $this;
     }
-    
-    
+
+    /**
+     * @param EzGEDSessionManagerInterfce|null $sessionManager
+     * @return self
+     */
+    public function setSessionManager(?EzGEDSessionManagerInterfce $sessionManager): self
+    {
+        $this->sessionManager = $sessionManager;
+        $this->resetManagerToken();
+        return $this;
+    }
+        
     public function isKeepalive(): bool
     {
-        return $this->sessionid && $this->keepalive;
+        return $this->getSessionid() && $this->keepalive;
     }
     
     /**
@@ -70,8 +83,11 @@ class EzGEDClient
     public function setApiDomain(?string $apiDomain): self
     {
         $apiDomain = empty($apiDomain) ? null : trim($apiDomain);
-        $this->sessionid = ($apiDomain === $this->apiDomain) ?: null;
+        if ($apiDomain !== $this->apiDomain) {
+            $this->setSessionid(null);
+        }
         $this->apiDomain = $apiDomain;
+        $this->resetManagerToken();
         return $this;
     }
     
@@ -81,8 +97,11 @@ class EzGEDClient
      */
     public function setApiUser(string $apiUser): self
     {
-        $this->sessionid = ($apiUser === $this->apiUser) ?: null;
+        if ($apiUser !== $this->apiUser) {
+            $this->setSessionid(null);
+        }
         $this->apiUser = $apiUser;
+        $this->resetManagerToken();
         return $this;
     }
     
@@ -92,9 +111,11 @@ class EzGEDClient
      */
     public function setApiPwd(string $apiPwd): self
     {
-        $this->sessionid = ($apiPwd === $this->apiPwd) ?: null;
+        if ($apiPwd !== $this->apiPwd) {
+            $this->setSessionid(null);
+        }
         $this->apiPwd = $apiPwd;
-        $this->sessionid = null;
+        $this->resetManagerToken();
         return $this;
     }
     
@@ -115,6 +136,42 @@ class EzGEDClient
     {
         $this->sslVerifyPeer = $sslVerifyPeer;
         return $this;
+    }
+    
+    /**
+     * Reset EzGEDSessionManagerInterfce token
+     */
+    private function resetManagerToken(): void
+    {
+        if ( null !== $this->sessionManager ) {
+            $token = sprintf('%s::%s::%s' 
+                , $this->apiDomain ?? ''
+                , $this->apiUser ?? ''
+                , $this->apiPwd ?? ''
+            );
+            $this->sessionManager->setToken( sha1($token) );
+        }
+    }
+    
+    /**
+     * @return string|null
+     */
+    private function getSessionid(): ?string
+    {
+        return (null === $this->sessionManager) ? $this->sessionid : $this->sessionManager->getIdSesion();
+    }
+
+    /**
+     * @param string|null $sessionid
+     * @return void
+     */
+    private function setSessionid(?string $sessionid): void
+    {
+        if ( null !== $this->sessionManager) {
+            $this->sessionManager->setIdSesion($sessionid);
+            $sessionid = null;
+        }
+        $this->sessionid = $sessionid;
     }
 
     
@@ -145,7 +202,7 @@ class EzGEDClient
     {
         return array_merge($params, [
             'format' => 'json',
-            'sessionid' => $this->sessionid ?? '',
+            'sessionid' => $this->getSessionid() ?? '',
         ]);
     }
     
@@ -173,7 +230,7 @@ class EzGEDClient
      */
     private function authent(bool $withKeepalive = false): self
     {
-        if ( !$this->sessionid ) {
+        if ( !$this->getSessionid() ) {
             $this->connect($withKeepalive);
         }
         return $this;
@@ -201,14 +258,14 @@ class EzGEDClient
             throw new AuthenticationException($ezResponse->getMessage(), -1);
         }
         
-        $this->sessionid = $ezResponse->getSessionid();
+        $this->setSessionid( $ezResponse->getSessionid() );
         $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
 
         if ( $withKeepalive ) {
             if ( $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed() ) {
                 $this->keepalive = true;
             }
-            $this->logger && $this->logger->debug( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->sessionid, ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
+            $this->logger && $this->logger->debug( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->getSessionid(), ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
         }
         return $ezResponse;
     }
@@ -221,9 +278,10 @@ class EzGEDClient
      */
     public function logout(): self
     {
+        $_sessionid = $this->getSessionid();
         $params = [
-            'sessionid' => $this->sessionid,
-            'secsesid' => $this->sessionid,
+            'sessionid' => $_sessionid,
+            'secsesid' => $_sessionid,
         ];
 
         /** @var EzGEDResponseInterface $ezResponse */
@@ -232,9 +290,9 @@ class EzGEDClient
             throw new LogoutException($ezResponse->getMessage(), $ezResponse->getMessage());
         }
         
-        $this->logger && $this->logger->debug( sprintf(' > EzGED session@%s CLOSED', $this->sessionid) );
+        $this->logger && $this->logger->debug( sprintf(' > EzGED session@%s CLOSED', $this->getSessionid()) );
         
-        $this->sessionid = null;
+        $this->setSessionid(null);
         $this->keepalive = true;
         $this->cookie = null;
 
