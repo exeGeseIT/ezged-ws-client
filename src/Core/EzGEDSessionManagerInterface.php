@@ -6,7 +6,7 @@ namespace ExeGeseIT\EzGEDWsClient\Core;
  *
  * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
-interface EzGEDSessionManagerInterfce
+interface EzGEDSessionManagerInterface
 {
     /**
      * Provide an 'uniq token' to identified apiUser'

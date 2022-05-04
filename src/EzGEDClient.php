@@ -5,7 +5,7 @@ namespace ExeGeseIT\EzGEDWsClient;
 use ExeGeseIT\EzGEDWsClient\Core\EzGED;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
-use ExeGeseIT\EzGEDWsClient\Core\EzGEDSessionManagerInterfce;
+use ExeGeseIT\EzGEDWsClient\Core\EzGEDSessionManagerInterface;
 use ExeGeseIT\EzGEDWsClient\Core\Response\ConnectResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\CreateRecordResponse;
 use ExeGeseIT\EzGEDWsClient\Core\Response\EmptyResponse;
@@ -46,7 +46,7 @@ class EzGEDClient
     private ?array $cookie = null;
     
     private EzGED $ezGED;
-    private ?EzGEDSessionManagerInterfce $sessionManager = null;
+    private ?EzGEDSessionManagerInterface $sessionManager = null;
     
     private ?LoggerInterface $logger = null;
     
@@ -61,10 +61,10 @@ class EzGEDClient
     }
 
     /**
-     * @param EzGEDSessionManagerInterfce|null $sessionManager
+     * @param EzGEDSessionManagerInterface|null $sessionManager
      * @return self
      */
-    public function setSessionManager(?EzGEDSessionManagerInterfce $sessionManager): self
+    public function setSessionManager(?EzGEDSessionManagerInterface $sessionManager): self
     {
         $this->sessionManager = $sessionManager;
         $this->resetManagerToken();
