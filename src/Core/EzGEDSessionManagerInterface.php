@@ -19,10 +19,10 @@ interface EzGEDSessionManagerInterface
      * @param string|null $idsession
      * @return void
      */
-    public function setIdSesion(?string $idsession): void;
+    public function setIdSession(?string $idsession): void;
     
     /**
      * @return string|null
      */
-    public function getIdSesion(): ?string;
+    public function getIdSession(): ?string;
 }
