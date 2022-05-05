@@ -16,6 +16,12 @@ interface EzGEDSessionManagerInterface
     public function setToken(string $token): void;
     
     /**
+     * Reset the sessionid
+     * @return void
+     */
+    public function resetSession(): void;
+    
+    /**
      * @return string|null
      */
     public function getIdSession(): ?string;

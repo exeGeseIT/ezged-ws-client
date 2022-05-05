@@ -12,8 +12,8 @@ use Psr\Log\LoggerInterface;
  */
 class ProxySesionManager implements EzGEDSessionManagerInterface
 {
-    private $idsession;
-    private $logger;
+    private $idsession = null;
+    private $logger = null;
     
     /**
      * @param string|null $msg
@@ -34,6 +34,14 @@ class ProxySesionManager implements EzGEDSessionManagerInterface
      */
     public function setToken(string $token): void
     {}
+    
+    /**
+     * {@inheritDoc}
+     */
+    public function resetSession(): void
+    {
+        $this->idsession = null;
+    }
 
     /**
      * {@inheritDoc}

@@ -101,7 +101,7 @@ class EzGEDClient
     public function setApiDomain(?string $apiDomain): self
     {
         $apiDomain = empty($apiDomain) ? null : trim($apiDomain);
-        if ($this->initialized &&  $apiDomain !== $this->apiDomain) {
+        if ($this->initialized && $apiDomain !== $this->apiDomain) {
             $this->setSessionid(null);
         }
         $this->apiDomain = $apiDomain;
@@ -115,7 +115,7 @@ class EzGEDClient
      */
     public function setApiUser(string $apiUser): self
     {
-        if ($this->initialized &&  $apiUser !== $this->apiUser) {
+        if ($this->initialized && $apiUser !== $this->apiUser) {
             $this->setSessionid(null);
         }
         $this->apiUser = $apiUser;
@@ -129,7 +129,7 @@ class EzGEDClient
      */
     public function setApiPwd(string $apiPwd): self
     {
-        if ($this->initialized &&  $apiPwd !== $this->apiPwd) {
+        if ($this->initialized && $apiPwd !== $this->apiPwd) {
             $this->setSessionid(null);
         }
         $this->apiPwd = $apiPwd;
@@ -302,7 +302,6 @@ class EzGEDClient
         
         $this->setSessionid( $ezResponse->getSessionid() );
         if ( $ezResponse->isSucceed() ) {
-            
             $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
             if ( $this->keepalive ) {
                 $state = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed();
@@ -336,6 +335,9 @@ class EzGEDClient
             'sessionid' => $_sessionid,
             'secsesid' => $_sessionid,
         ];
+        
+        $this->setSessionid(null);
+        $this->cookie = null;
 
         /** @var EzGEDResponseInterface $ezResponse */
         $ezResponse = $this->ezGED->exec(EzGEDServicesInterface::REQ_LOGOUT, $this->getParams($params), $this->getOptions());
@@ -344,9 +346,6 @@ class EzGEDClient
         }
         
         $this->log( sprintf(' > EzGED session@%s CLOSED', $_sessionid) );
-        
-        $this->setSessionid(null);
-        $this->cookie = null;
 
         return $this;
     }
