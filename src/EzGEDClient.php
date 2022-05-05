@@ -44,6 +44,7 @@ class EzGEDClient
     
     private Filesystem $filesystem;
     
+    private bool $initialized = false;
     private bool $keepalive = false;
     private ?array $cookie = null;
     
@@ -100,7 +101,7 @@ class EzGEDClient
     public function setApiDomain(?string $apiDomain): self
     {
         $apiDomain = empty($apiDomain) ? null : trim($apiDomain);
-        if ($apiDomain !== $this->apiDomain) {
+        if ($this->initialized &&  $apiDomain !== $this->apiDomain) {
             $this->setSessionid(null);
         }
         $this->apiDomain = $apiDomain;
@@ -114,7 +115,7 @@ class EzGEDClient
      */
     public function setApiUser(string $apiUser): self
     {
-        if ($apiUser !== $this->apiUser) {
+        if ($this->initialized &&  $apiUser !== $this->apiUser) {
             $this->setSessionid(null);
         }
         $this->apiUser = $apiUser;
@@ -128,7 +129,7 @@ class EzGEDClient
      */
     public function setApiPwd(string $apiPwd): self
     {
-        if ($apiPwd !== $this->apiPwd) {
+        if ($this->initialized &&  $apiPwd !== $this->apiPwd) {
             $this->setSessionid(null);
         }
         $this->apiPwd = $apiPwd;
@@ -185,6 +186,7 @@ class EzGEDClient
     private function setSessionid(?string $sessionid): void
     {
         $this->sessionManager->setIdSession($sessionid);
+        $this->initialized = (null !== $this->sessionManager->setIdSession($sessionid));
     }
 
     
@@ -298,27 +300,27 @@ class EzGEDClient
         /** @var ConnectResponse $ezResponse */
         $ezResponse = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH, $params, $this->getOptions());
         
-        if ( !$ezResponse->isSucceed() ) {
-            switch ($ezResponse->getErrorNumber()) {
-                case EzGEDError::MAX_SESSION_REACHED:
-                    $this->log(sprintf('EzGEDClient::connect() failed with: [%d]:%s', $ezResponse->getErrorNumber(), $ezResponse->getMessage()), 'debug');
-                    throw new MaxSessionReachedException($ezResponse->getMessage(), -1);
-                    break;
-                default:
-                    $this->log(sprintf('EzGEDClient::connect() failed with: [%d]:%s', $ezResponse->getErrorNumber(), $ezResponse->getMessage()), 'debug');
-                    throw new AuthenticationException($ezResponse->getMessage(), -1);
-                    break;
+        $this->setSessionid( $ezResponse->getSessionid() );
+        if ( $ezResponse->isSucceed() ) {
+            
+            $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
+            if ( $this->keepalive ) {
+                $state = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed();
+                $this->log( sprintf(' > Turning EzGED session@%s on keepAlive state %s', $this->getSessionid(), ($state ? 'SUCCEEDED' : 'FAILED')) );
             }
+            return $ezResponse;
         }
         
-        $this->setSessionid( $ezResponse->getSessionid() );
-        $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
-
-        if ( $this->keepalive ) {
-            $state = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed();
-            $this->log( sprintf(' > Turning EzGED session@%s on keepAlive state %s', $this->getSessionid(), ($state ? 'SUCCEEDED' : 'FAILED')) );
+        $this->log(sprintf('EzGEDClient::connect() failed with: [%d]:%s', $ezResponse->getErrorNumber(), $ezResponse->getMessage()), 'debug');
+        
+        switch ( $ezResponse->getErrorNumber() ) {
+            case EzGEDError::MAX_SESSION_REACHED:
+                throw new MaxSessionReachedException($ezResponse->getMessage(), EzGEDError::MAX_SESSION_REACHED);
+                break;
+            default:
+                throw new AuthenticationException($ezResponse->getMessage(), -1);
+                break;
         }
-        return $ezResponse;
     }
     
     
