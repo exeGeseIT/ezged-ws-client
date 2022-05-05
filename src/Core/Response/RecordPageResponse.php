@@ -24,7 +24,7 @@ class RecordPageResponse extends EzGEDResponseAbstract
     
     protected function initialize(array $data): void
     {
-        $rows = array_key_exists('rows', $data) ? $data['rows'] : null;
+        $rows = !empty($data['rows']) ? $data['rows'] : null;
         if ( $rows ) {
             $out = [];
             foreach ($rows as $item) {

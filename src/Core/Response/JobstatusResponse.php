@@ -86,7 +86,7 @@ class JobstatusResponse extends EzGEDResponseAbstract implements EzJobstatusInte
             
     protected function initialize(array $data): void
     {
-        $rows = array_key_exists('rows', $data) ? $data['rows'][0] : null;
+        $rows = !empty($data['rows']) ? $data['rows'][0] : null;
         if ( $rows ) {
             $this->jobId = $rows['JOBQUEUE_ID'];
             $this->statusId = isset($rows['JOBQUEUE_STATUS']) ? $rows['JOBQUEUE_STATUS'] : null;
