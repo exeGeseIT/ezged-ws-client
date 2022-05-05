@@ -15,7 +15,7 @@ $ezWS = (new EzGEDClient( $config['api'] ))
     ;
 
 /**/
-$response = $ezWS->connect(false);
+$response = $ezWS->connect();
 dump([
     'message' => $response->getMessage(),
     'connect' => $response->getHttpHeaders(),
@@ -25,5 +25,7 @@ dump([
 if ( !empty($config['test-script-file']) ){
     echo '>> Runing: ' . $config['test-script-file'];
     require $config['test-script-file'];
-    die();
 }
+
+/**/
+dump(['logout' => $ezWS->logout()]);

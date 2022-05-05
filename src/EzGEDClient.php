@@ -34,6 +34,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class EzGEDClient
 {
+    const NO_VALID_SESSION = 401;
+    
     private string $apiUrl;
     private ?string $apiDomain = null;
     private string $apiUser = '';
@@ -43,7 +45,6 @@ class EzGEDClient
     private Filesystem $filesystem;
     
     private bool $keepalive = false;
-    //private ?string $sessionid = null;
     private ?array $cookie = null;
     
     private EzGED $ezGED;
@@ -65,9 +66,9 @@ class EzGEDClient
      * @param string|null $msg
      * @return void
      */
-    private function log(?string $msg): void
+    private function log(?string $msg, ?string $level = null): void
     {
-        $this->logger && $this->logger->debug($msg);
+        $this->logger && $this->logger->log($level ?? 'info', $msg);
     }
 
     /**
@@ -81,9 +82,14 @@ class EzGEDClient
         return $this;
     }
         
-    public function isKeepalive(): bool
+    /**
+     * @param bool|null $state
+     * @return self
+     */
+    public function setPersistent(?bool $state=true): self
     {
-        return $this->keepalive && $this->getSessionid();
+        $this->keepalive = $state;
+        return $this;
     }
     
     /**
@@ -166,9 +172,8 @@ class EzGEDClient
     /**
      * @return string|null
      */
-    private function getSessionid(): ?string
+    public function getSessionid(): ?string
     {
-        //return (null === $this->sessionManager) ? $this->sessionid : $this->sessionManager->getIdSession();
         return $this->sessionManager->getIdSession();
     }
 
@@ -179,11 +184,6 @@ class EzGEDClient
     private function setSessionid(?string $sessionid): void
     {
         $this->sessionManager->setIdSession($sessionid);
-        /*if ( null !== $this->sessionManager) {
-            $this->sessionManager->setIdSession($sessionid);
-            $sessionid = null;
-        }
-        $this->sessionid = $sessionid;*/
     }
 
     
@@ -225,7 +225,7 @@ class EzGEDClient
             $options[ 'headers' ] = array_merge($options['headers'], ['Cookie' => implode(',', $this->cookie ?? [])]);
         } else {
             $options[ 'headers' ] = [
-                    'Cookie' => implode(',', $this->cookie ?? []),
+                'Cookie' => implode(',', $this->cookie ?? []),
             ];
         }
         
@@ -236,15 +236,24 @@ class EzGEDClient
     }
     
     /**
-     * 
-     * @param bool $withKeepalive
+     * Check if the managed session is still valid
+     * @return bool
+     */
+    private function isDeadSession(): bool
+    {
+        /** @var EzGEDResponseInterface $response */
+        $response = $this->ezGED->exec(EzGEDServicesInterface::REQ_GET_JOB_STATUS, $this->getParams(['jobqueueid'=>0]), $this->getOptions());
+        return self::NO_VALID_SESSION == $response->getErrorNumber();
+    }
+    
+    /**
      * @return self
      * @throws AuthenticationException
      */
-    private function authent(bool $withKeepalive = false): self
+    private function authent(): self
     {
-        if ( !$this->getSessionid() ) {
-            $this->connect($withKeepalive);
+        if ( !$this->getSessionid() || $this->isDeadSession() ) {
+            $this->connect();
         }
         return $this;
     }
@@ -264,6 +273,8 @@ class EzGEDClient
             'pwd' => $this->getApiPwd(),
         ];
         
+        $this->keepalive = $this->keepalive || $withKeepalive;
+        
         /** @var ConnectResponse $ezResponse */
         $ezResponse = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH, $params, $this->getOptions());
         
@@ -274,11 +285,9 @@ class EzGEDClient
         $this->setSessionid( $ezResponse->getSessionid() );
         $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
 
-        if ( $withKeepalive ) {
-            if ( $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed() ) {
-                $this->keepalive = true;
-            }
-            $this->log( sprintf(' > Turn EzGED session@%s on keepAlive state: %s', $this->getSessionid(), ($this->isKeepalive() ? 'SUCCEED' : 'FAILED')));
+        if ( $this->keepalive ) {
+            $state = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed();
+            $this->log( sprintf(' > Turning EzGED session@%s on keepAlive state %s', $this->getSessionid(), ($state ? 'SUCCEEDED' : 'FAILED')) );
         }
         return $ezResponse;
     }
@@ -303,10 +312,10 @@ class EzGEDClient
             throw new LogoutException($ezResponse->getMessage(), $ezResponse->getMessage());
         }
         
-        $this->logger && $this->logger->debug( sprintf(' > EzGED session@%s CLOSED', $this->getSessionid()) );
+        $this->log( sprintf(' > EzGED session@%s CLOSED', $_sessionid) );
         
         $this->setSessionid(null);
-        $this->keepalive = true;
+        $this->keepalive = false;
         $this->cookie = null;
 
         return $this;
@@ -621,7 +630,7 @@ class EzGEDClient
     public function getJobStatus(int $jobId, bool $waitFinalState = false): JobstatusResponse
     {
         $params = [
-            'jobqueueid' => $idjob,
+            'jobqueueid' => $jobId,
         ];
 
         /** @var JobstatusResponse $response */
@@ -632,7 +641,7 @@ class EzGEDClient
             $retry = (60 / EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME);
             $wait = true;
             while ( $wait ) {
-                $this->logger && $this->logger->info( sprintf(' > waiting %ds before next job status request.', EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME));
+                $this->log( sprintf(' > waiting %ds before next job status request.', EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME) );
                 sleep( EzGEDHelper::DEFAULT_JOBSTATUS_POOLING_WAITTIME );
                 
                 $response = $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_JOB_STATUS, $this->getParams($params), $this->getOptions($options));
