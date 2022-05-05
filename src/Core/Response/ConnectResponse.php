@@ -12,7 +12,7 @@ use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBag;
  */
 class ConnectResponse extends EzGEDResponseAbstract
 {
-    private string $sessionid;
+    private ?string $sessionid = null;
     
     public function getSessionid(): ?string
     {

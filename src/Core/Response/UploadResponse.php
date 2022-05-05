@@ -11,7 +11,7 @@ use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseAbstract;
  */
 class UploadResponse extends EzGEDResponseAbstract
 {
-    private string $filePath;
+    private ?string $filePath = null;
     
     public function getFilePath(): ?string
     {

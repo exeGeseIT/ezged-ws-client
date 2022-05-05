@@ -14,7 +14,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 class CreateRecordResponse extends EzGEDResponseAbstract
 {
-    private ?int $recordId;
+    private ?int $recordId = null;
     
     public function getRecordId(): ?int
     {
