@@ -3,6 +3,7 @@
 namespace ExeGeseIT\EzGEDWsClient;
 
 use ExeGeseIT\EzGEDWsClient\Core\EzGED;
+use ExeGeseIT\EzGEDWsClient\Core\EzGEDError;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDResponseInterface;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDServicesInterface;
 use ExeGeseIT\EzGEDWsClient\Core\EzGEDSessionManagerInterface;
@@ -18,6 +19,7 @@ use ExeGeseIT\EzGEDWsClient\Core\SessionManager\ProxySesionManager;
 use ExeGeseIT\EzGEDWsClient\Exception\AuthenticationException;
 use ExeGeseIT\EzGEDWsClient\Exception\EzGEDClientException;
 use ExeGeseIT\EzGEDWsClient\Exception\LogoutException;
+use ExeGeseIT\EzGEDWsClient\Exception\MaxSessionReachedException;
 use Psr\Log\LoggerInterface;
 use SplFileObject;
 use Symfony\Component\Filesystem\Filesystem;
@@ -34,8 +36,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class EzGEDClient
 {
-    const NO_VALID_SESSION = 401;
-    
     private string $apiUrl;
     private ?string $apiDomain = null;
     private string $apiUser = '';
@@ -64,6 +64,7 @@ class EzGEDClient
     
     /**
      * @param string|null $msg
+     * @param string|null $level
      * @return void
      */
     private function log(?string $msg, ?string $level = null): void
@@ -243,7 +244,11 @@ class EzGEDClient
     {
         /** @var EzGEDResponseInterface $response */
         $response = $this->ezGED->exec(EzGEDServicesInterface::REQ_GET_JOB_STATUS, $this->getParams(['jobqueueid'=>0]), $this->getOptions());
-        return self::NO_VALID_SESSION == $response->getErrorNumber();
+        if ( $isdead = EzGEDError::NO_VALID_SESSION == $response->getErrorNumber() ) {
+            $this->log(sprintf(' > %s[%d]: %s', basename(__METHOD__), $response->getErrorNumber(), $response->getMessage()), 'debug');
+            $this->logout();
+        }
+        return $isdead;
     }
     
     /**
@@ -256,6 +261,21 @@ class EzGEDClient
             $this->connect();
         }
         return $this;
+    }
+    
+    
+    /**
+     * Auto kill not persistent session (keepalive == false)
+     * 
+     * @param EzGEDResponseInterface|null $response
+     * @return EzGEDResponseInterface|null
+     */
+    private function resolve(?EzGEDResponseInterface $response): ?EzGEDResponseInterface
+    {
+        if ( !$this->keepalive ) {
+            $this->logout();
+        }
+        return $response;
     }
     
     
@@ -279,7 +299,16 @@ class EzGEDClient
         $ezResponse = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH, $params, $this->getOptions());
         
         if ( !$ezResponse->isSucceed() ) {
-            throw new AuthenticationException($ezResponse->getMessage(), -1);
+            switch ($ezResponse->getErrorNumber()) {
+                case EzGEDError::MAX_SESSION_REACHED:
+                    $this->log(sprintf('EzGEDClient::connect() failed with: [%d]:%s', $ezResponse->getErrorNumber(), $ezResponse->getMessage()), 'debug');
+                    throw new MaxSessionReachedException($ezResponse->getMessage(), -1);
+                    break;
+                default:
+                    $this->log(sprintf('EzGEDClient::connect() failed with: [%d]:%s', $ezResponse->getErrorNumber(), $ezResponse->getMessage()), 'debug');
+                    throw new AuthenticationException($ezResponse->getMessage(), -1);
+                    break;
+            }
         }
         
         $this->setSessionid( $ezResponse->getSessionid() );
@@ -315,7 +344,6 @@ class EzGEDClient
         $this->log( sprintf(' > EzGED session@%s CLOSED', $_sessionid) );
         
         $this->setSessionid(null);
-        $this->keepalive = false;
         $this->cookie = null;
 
         return $this;
@@ -328,7 +356,8 @@ class EzGEDClient
      */
     public function getPerimeter(): PerimeterResponse
     {
-        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_PERIMETER, $this->getParams(), $this->getOptions());
+        $response = $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_PERIMETER, $this->getParams(), $this->getOptions());
+        return $this->resolve( $response );
     }
     
     /**
@@ -411,7 +440,8 @@ class EzGEDClient
             }
         }
 
-        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_EXEC_REQUEST, $this->getParams($params), $this->getOptions());
+        $response = $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_EXEC_REQUEST, $this->getParams($params), $this->getOptions());
+        return $this->resolve( $response );
     }
     
     
@@ -433,7 +463,8 @@ class EzGEDClient
             'limitgridlines' => $limit,
         ];
 
-        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_RECORD_FILES, $this->getParams($params), $this->getOptions());
+        $response = $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_GET_RECORD_FILES, $this->getParams($params), $this->getOptions());
+        return $this->resolve( $response );
     }
     
     
@@ -595,8 +626,9 @@ class EzGEDClient
             'headers' => $headers,
             'body' => $formData->bodyToIterable(),
         ];
-
-        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_UPLOAD, $this->getParams($params), $this->getOptions($options));
+        
+        $response = $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_UPLOAD, $this->getParams($params), $this->getOptions($options));
+        return $this->resolve( $response );
     }
     
     
@@ -618,7 +650,8 @@ class EzGEDClient
             'ocr' => ($convertBeforeArchive ? 0 : 1),
         ];
 
-        return $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_ADD_RECORD_FILE, $this->getParams($params), $this->getOptions($options));
+        $response = $this->authent()->ezGED->exec(EzGEDServicesInterface::REQ_ADD_RECORD_FILE, $this->getParams($params), $this->getOptions($options));
+        return $this->resolve( $response );
     }
     
     /**
@@ -651,7 +684,7 @@ class EzGEDClient
             }
         }
 
-        return $response;
+        return $this->resolve( $response );
     }
     
 }
