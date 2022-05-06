@@ -4,9 +4,9 @@ namespace ExeGeseIT\EzGEDWsClient\Core;
 
 use ExeGeseIT\EzGEDWsClient\Core\Dto\EzBagInterface;
 use ExeGeseIT\EzGEDWsClient\Core\ParameterBag\ParameterBagInterface;
+use ExeGeseIT\EzGEDWsClient\Exception\HttpClientException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -15,7 +15,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 /**
  * Description of EzGEDResponseIAbstract
  *
- * @author Dev0ne <dev@docatwork.fr>
+ * @author Jean-Claude GLOMBARD <jc.glombard@gmail.com>
  */
 abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
 {
@@ -129,14 +129,10 @@ abstract class EzGEDResponseAbstract implements EzGEDResponseInterface
             
             $this->initialize($payload);
             
-        } catch (DecodingExceptionInterface $exc) {
-            $this->error = 1;
-            $this->message = $exc->getMessage();
-        } catch (HttpExceptionInterface $httpExc) {
+        } catch (\Exception $exc) {
             $this->error = $this->getHttpStatusCode();
-            $this->message = $httpExc->getMessage();
+            $this->message = $exc->getMessage();
+            throw new HttpClientException($exc);
         }
-
     }
-    
 }
