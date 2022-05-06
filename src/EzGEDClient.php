@@ -47,6 +47,7 @@ class EzGEDClient
     
     private bool $initialized = false;
     private bool $keepalive = false;
+    private bool $autologout = true;
     private ?array $cookie = null;
     
     private EzGED $ezGED;
@@ -85,6 +86,16 @@ class EzGEDClient
         return $this;
     }
         
+    /**
+     * @param bool|null $state
+     * @return self
+     */
+    public function disableAutoLogout(?bool $state=true): self
+    {
+        $this->autologout = !$state;
+        return $this;
+    }
+    
     /**
      * @param bool|null $state
      * @return self
@@ -275,7 +286,7 @@ class EzGEDClient
      */
     private function resolve(?EzGEDResponseInterface $response): ?EzGEDResponseInterface
     {
-        if ( !$this->keepalive ) {
+        if ( $this->autologout && !$this->keepalive ) {
             $this->logout();
         }
         return $response;
@@ -310,7 +321,7 @@ class EzGEDClient
                 $this->cookie = $ezResponse->getHttpHeaders()['set-cookie'];
                 if ( $this->keepalive ) {
                     $state = $this->ezGED->exec(EzGEDServicesInterface::REQ_AUTH_KEEPALIVE, $this->getParams($params), $this->getOptions())->isSucceed();
-                    $this->log( sprintf(' > Turning EzGED session@%s on keepAlive state %s', $this->getSessionid(), ($state ? 'SUCCEEDED' : 'FAILED')) );
+                    $this->log( sprintf(' > Turning EzGED session@%s persistent (keepAlive) %s', $this->getSessionid(), ($state ? 'SUCCEEDED' : 'FAILED')) );
                 }
                 return $ezResponse;
             }
