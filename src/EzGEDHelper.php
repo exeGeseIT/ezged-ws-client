@@ -16,7 +16,7 @@ class EzGEDHelper
     
     const DEFAULT_JOBSTATUS_POOLING_WAITTIME = 2;
     
-    private const OPERATORS = ['=', '>=', '<=', 'like'];
+    private const OPERATORS = ['=', '>=', '<=', 'like', '<>', 'not like'];
     private const DIRECTIONS = ['ASC', 'DESC'];
     
     /**
@@ -140,6 +140,18 @@ class EzGEDHelper
     }
     
     /**
+     * field <> value
+     * 
+     * @param string $field
+     * @param string $value
+     * @return array
+     */
+    public static function notEqualSearchFilter(string $field, string $value): array
+    {
+        return self::setSearchFilter($field, $value, '<>');
+    }
+    
+    /**
      * field >= value
      * 
      * @param string $field
@@ -173,5 +185,17 @@ class EzGEDHelper
     public static function likeSearchFilter(string $field, string $value): array
     {
         return self::setSearchFilter($field, $value, 'like');
+    }
+    
+    /**
+     * field not like value
+     * 
+     * @param string $field
+     * @param string $value
+     * @return array
+     */
+    public static function notLikeSearchFilter(string $field, string $value): array
+    {
+        return self::setSearchFilter($field, $value, 'not like');
     }
 }
