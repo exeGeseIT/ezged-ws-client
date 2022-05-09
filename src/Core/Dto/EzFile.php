@@ -9,14 +9,13 @@ namespace ExeGeseIT\EzGEDWsClient\Core\Dto;
  */
 class EzFile extends EzGenericBag
 {
-    private string $api_show_service;
-    
     protected ?int $rsid;
     protected ?int $fsfileid;
     protected ?string $fsfileripe;
     
     protected string $gedlink;
     protected string $previewUrl;
+    protected string $thumbnailUrl;
     
     public function __construct(string $apiUrl)
     {
@@ -28,7 +27,7 @@ class EzFile extends EzGenericBag
             'ripefilearchive',
         ]);
         
-        $this->api_show_service = sprintf('%s/showdocs.php', $apiUrl);
+        $this->apiUrl = $apiUrl;
         
     }
     
@@ -60,6 +59,15 @@ class EzFile extends EzGenericBag
     public function getPreviewUrl(): string
     {
         return $this->previewUrl;
+    }
+    
+    public function getDirectlink(): string
+    {
+        return str_replace(
+            ['data/showdocs', 'fsfileid=', 'fsfileripe='],
+            ['directlink', 'id1=', 'id2='], 
+            $this->previewUrl
+        );
     }
 
 
@@ -137,7 +145,8 @@ class EzFile extends EzGenericBag
         }
         
         $this->gedlink = sprintf('fsfileid=%d&fsfileripe=%s', $this->getFsfileid(), $this->getFsfileripe());
-        $this->previewUrl = sprintf('%s?%s', $this->api_show_service, $this->getGedlink());
+        $this->previewUrl = sprintf('%s/showdocs.php?%s', $this->apiUrl, $this->getGedlink());
+        $this->thumbnailUrl = sprintf('%s/showthumbs.php?%s', $this->apiUrl, $this->getGedlink());
         
         return $this;
     }
