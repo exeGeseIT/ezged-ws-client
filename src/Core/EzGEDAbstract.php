@@ -70,6 +70,7 @@ abstract class EzGEDAbstract implements EzGEDServicesInterface
             ->setQuery([
                 'sessionid' => '',
                 'secsesid' => '',
+                'forcedisconnect' => 1, 
             ])
             ;
 
